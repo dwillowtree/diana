@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import anthropic
 from threat_research import perform_threat_research
+import subprocess
+import sys
 
 # Load environment variables
 load_dotenv()
@@ -207,168 +209,333 @@ def process_threat_intel(description, file_content, llm_provider, model, data_ty
 # Streamlit UI
 st.set_page_config(page_title="D.I.A.N.A.", page_icon="🛡️", layout="wide")
 
+# Custom CSS and JavaScript for improved styling and resizable sidebar
+st.markdown("""
+<style>
+    .stApp {
+        max-width: none;
+        padding: 1rem;
+    }
+    .main .block-container {
+        max-width: none;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+    .main-content {
+        background-color: #f0f2f6;
+        padding: 2rem;
+        border-radius: 10px;
+    }
+    .sidebar .stButton>button {
+        width: 100%;
+    }
+    .stProgress > div > div > div > div {
+        background-color: #4CAF50;
+    }
+    .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: help;
+    }
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 200px;
+        background-color: #555;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+    }
+    [data-testid="stSidebar"] {
+        min-width: 300px;
+        max-width: 800px;
+        width: 300px;
+        resize: horizontal;
+        overflow: auto;
+    }
+    [data-testid="stSidebar"] > div:first-child {
+        width: 100%;
+        height: 100%;
+    }
+    .stApp > header {
+        background-color: transparent;
+    }
+    .stApp {
+        margin: 0;
+    }
+    .resize-handle {
+        position: absolute;
+        right: -5px;
+        top: 0;
+        bottom: 0;
+        width: 10px;
+        cursor: col-resize;
+        z-index: 1000;
+    }
+</style>
+
+<script>
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'resize-handle';
+    const sidebar = window.parent.document.querySelector('[data-testid="stSidebar"]');
+    sidebar.appendChild(resizeHandle);
+
+    let isResizing = false;
+    let lastDownX = 0;
+
+    resizeHandle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        lastDownX = e.clientX;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        const offsetRight = document.body.offsetWidth - (e.clientX - document.body.offsetLeft);
+        const minWidth = 300;
+        const maxWidth = 800;
+        const newWidth = Math.min(Math.max(minWidth, document.body.offsetWidth - offsetRight), maxWidth);
+        sidebar.style.width = newWidth + 'px';
+    });
+
+    document.addEventListener('mouseup', (e) => {
+        isResizing = false;
+    });
+</script>
+""", unsafe_allow_html=True)
+
 # Add a sidebar
 sidebar = st.sidebar
 
 with sidebar:
-    st.image("https://i.imgur.com/wEHCCaj.png", width=300)  # Add your logo
+    st.image("https://i.imgur.com/wEHCCaj.png", width=300)
 
-    # Add the About DIANA section
-    st.markdown("""
-    ## About DIANA
+    # About DIANA section (collapsed by default)
+    with st.expander("About DIANA", expanded=False):
+        st.markdown("""
+        DIANA (Detection and Intelligence Analysis for New Alerts) is an AI-powered tool designed to streamline the detection writing process in cybersecurity operations.
 
-    DIANA (Detection and Intelligence Analysis for New Alerts) is an AI-powered tool designed to streamline the detection writing process in cybersecurity operations.
+        ### Purpose:
+        - Automate the creation of detections from threat intelligence
+        - Reduce manual effort in researching log sources and writing queries
+        - Generate investigation steps and quality assurance checks
 
-    ### Purpose:
-    - Automate the creation of detections from threat intelligence
-    - Reduce manual effort in researching log sources and writing queries
-    - Generate investigation steps and quality assurance checks
+        ### How to Use:
+        1. Configure settings in the sidebar
+        2. Enter threat intelligence or upload a report
+        3. Provide example detections and logs
+        4. Add detection writing steps and SOPs
+        5. Click 'Process Threat Intel' to generate results
 
-    ### How to Use:
-    1. Select your LLM provider and model
-    2. Choose relevant security data/log types
-    3. Enter threat intelligence description or upload a report
-    4. Provide example detections and writing steps
-    5. Add standard operating procedures
-    6. Adjust model parameters if needed
-    7. Click 'Process Threat Intel' to generate results
-
-    DIANA will guide you through the entire process, from threat analysis to final detection creation, saving time and improving efficiency in your security operations.
-    """)
+        DIANA will guide you through the entire process, from threat analysis to final detection creation.
+        """)
 
     st.subheader("Configuration")
-    llm_provider = st.selectbox("LLM Provider", ["OpenAI", "Anthropic"], key="llm_provider")
     
+    # LLM Provider selection with tooltip
+    llm_provider = st.selectbox(
+        "LLM Provider",
+        ["OpenAI", "Anthropic"],
+        key="llm_provider",
+        help="Choose the AI model provider for processing."
+    )
+    
+    # Model selection based on provider
     if llm_provider == "OpenAI":
-        model = st.selectbox("Model Type", ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"], key="openai_model")
+        model = st.selectbox(
+            "Model Type",
+            ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
+            key="openai_model",
+            help="Select the OpenAI model to use for processing."
+        )
     else:
-        model = st.selectbox("Model Type", ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-haiku-20240307"], key="anthropic_model")
+        model = st.selectbox(
+            "Model Type",
+            ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
+            key="anthropic_model",
+            help="Select the Anthropic model to use for processing."
+        )
     
-    data_types = st.multiselect("Security Data/Log Type(s)", [
-        "Okta Logs", 
-        "AWS CloudTrail Logs", 
-        "Kubernetes Audit Logs", 
-        "GitLab Audit Logs",
-        "Azure Activity Logs",
-        "Google Cloud Audit Logs",
-        "Microsoft 365 Audit Logs",
-        "Cloudflare Logs",
-        "Docker Container Logs",
-        "AWS GuardDty Findings",
-        "AWS VPC Flow Logs",
-        "Azure Sentinel Logs",
-        "Google Cloud Security Command Center Logs",
-        "GitHub Audit Logs",
-        "Salesforce Event Monitoring Logs"
-    ], default=["AWS CloudTrail Logs"], key="security_data_type")
+    # Data types multiselect with search functionality
+    data_types = st.multiselect(
+        "Security Data/Log Type(s)",
+        [
+            "Okta Logs", "AWS CloudTrail Logs", "Kubernetes Audit Logs", "GitLab Audit Logs",
+            "Azure Activity Logs", "Google Cloud Audit Logs", "Microsoft 365 Audit Logs",
+            "Cloudflare Logs", "Docker Container Logs", "AWS GuardDty Findings",
+            "AWS VPC Flow Logs", "Azure Sentinel Logs", "Google Cloud Security Command Center Logs",
+            "GitHub Audit Logs", "Salesforce Event Monitoring Logs"
+        ],
+        default=["AWS CloudTrail Logs"],
+        key="security_data_type",
+        help="Select the relevant log types for your detection."
+    )
 
-    detection_language = st.selectbox("Detection Language", [
-        "AWS Athena", 
-        "StreamAlert", 
-        "Splunk SPL", 
-        "Elastic Query DSL",
-        "Kusto Query Language (KQL)",
-        "Google Cloud Logging Query Language",
-        "Sigma Rules",
-        "YARA Rules",
-        "Open Policy Agent (OPA) Rego",
-        "AWS Security Hub Custom Insights",
-        "Falco Rules",
-        "Panther Detection-as-Code (Python)",
-        "Sumo Logic Search Query Language",
-        "Datadog Security Rules"
-    ], key="detection_language_select")
+    # Detection language selection with tooltip
+    detection_language = st.selectbox(
+        "Detection Language",
+        [
+            "AWS Athena", "StreamAlert", "Splunk SPL", "Elastic Query DSL",
+            "Kusto Query Language (KQL)", "Google Cloud Logging Query Language",
+            "Sigma Rules", "YARA Rules", "Open Policy Agent (OPA) Rego",
+            "AWS Security Hub Custom Insights", "Falco Rules",
+            "Panther Detection-as-Code (Python)", "Sumo Logic Search Query Language",
+            "Datadog Security Rules"
+        ],
+        key="detection_language_select",
+        help="Choose the query language for your detection rules."
+    )
 
+    # Model parameters with explanations
     st.subheader("Model Parameters")
-    st.write("Temperature: Controls the randomness of the output. Higher values (e.g., 0.8) make the output more random, while lower values (e.g., 0.2) make it more deterministic.")
-    temperature = st.slider("Temperature", min_value=0.0, max_value=1.0, value=0.7, step=0.1, key="temperature_slider")
+    temperature = st.slider(
+        "Temperature",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.7,
+        step=0.1,
+        key="temperature_slider",
+        help="Controls output randomness. Lower values (e.g., 0.2) for more deterministic results, higher values (e.g., 0.8) for more creative outputs."
+    )
     
-    st.write("Max Tokens: The maximum number of tokens (words or word pieces) in the generated response. Higher values allow for longer outputs but may increase processing time.")
-    max_tokens = st.slider("Max Tokens", min_value=100, max_value=4000, value=1000, step=100, key="max_tokens_slider")
+    max_tokens = st.slider(
+        "Max Tokens",
+        min_value=100,
+        max_value=4000,
+        value=1000,
+        step=100,
+        key="max_tokens_slider",
+        help="Maximum number of tokens in the generated response. Higher values allow for longer outputs but may increase processing time."
+    )
 
-    st.subheader("Open Source Detection Content")
-    st.markdown("[![Elastic](https://img.shields.io/badge/Elastic-005571?style=for-the-badge&logo=elastic&logoColor=white)](https://github.com/elastic/detection-rules)")
-    st.markdown("[![Chronicle](https://img.shields.io/badge/Chronicle-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://github.com/chronicle/detection-rules)")
-    st.markdown("[![Sigma](https://img.shields.io/badge/Sigma-008080?style=for-the-badge&logo=sigma&logoColor=white)](https://github.com/SigmaHQ/sigma)")
-    st.markdown("[![Hacking the Cloud](https://img.shields.io/badge/Hacking_the_Cloud-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://hackingthe.cloud/)")
-    st.markdown("[![Wiz Threats](https://img.shields.io/badge/Wiz_Threats-00ADEF?style=for-the-badge&logo=wiz&logoColor=white)](https://threats.wiz.io/)")
-    st.markdown("[![Anvilogic Armory](https://img.shields.io/badge/Anvilogic_Armory-6F2DA8?style=for-the-badge&logo=github&logoColor=white)](https://github.com/anvilogic-forge/armory)")
+    # Open Source Detection Content (collapsed by default)
+    with st.expander("Open Source Detection Content", expanded=False):
+        st.markdown("[![Elastic](https://img.shields.io/badge/Elastic-005571?style=for-the-badge&logo=elastic&logoColor=white)](https://github.com/elastic/detection-rules)")
+        st.markdown("[![Chronicle](https://img.shields.io/badge/Chronicle-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://github.com/chronicle/detection-rules)")
+        st.markdown("[![Sigma](https://img.shields.io/badge/Sigma-008080?style=for-the-badge&logo=sigma&logoColor=white)](https://github.com/SigmaHQ/sigma)")
+        st.markdown("[![Hacking the Cloud](https://img.shields.io/badge/Hacking_the_Cloud-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://hackingthe.cloud/)")
+        st.markdown("[![Wiz Threats](https://img.shields.io/badge/Wiz_Threats-00ADEF?style=for-the-badge&logo=wiz&logoColor=white)](https://threats.wiz.io/)")
+        st.markdown("[![Anvilogic Armory](https://img.shields.io/badge/Anvilogic_Armory-6F2DA8?style=for-the-badge&logo=github&logoColor=white)](https://github.com/anvilogic-forge/armory)")
 
+# Main content area
 st.title("🛡️ D.I.A.N.A.")
 st.subheader("Detection and Intelligence Analysis for New Alerts")
 
-col1, col2 = st.columns(2)
+# Create tabs for main workflow and threat research
+tab1, tab2 = st.tabs(["Detection Engineering", "Threat Research Crew"])
 
-with col1:
-    st.subheader("Threat Intelligence Input")
-    description = st.text_area("Enter threat intelligence description:", 
-                               height=200, 
-                               value="Detect a user attempting to exfiltrate an Amazon EC2 AMI Snapshot.This rule lets you monitor the ModifyImageAttribute CloudTrail API calls to detect when an Amazon EC2 AMI snapshot is made public or shared with an AWS account.This rule also inspects: @requestParameters.launchPermission.add.items.group array to determine if the string all is contained. This is the indicator which means the RDS snapshot is made public.@requestParameters.launchPermission.add.items.userId array to determine if the string * is contained. This is the indicator which means the RDS snapshot was shared with a new or unknown AWS account.")
-    uploaded_file = st.file_uploader("Upload threat intel report or blog (optional)", type=["txt", "pdf"])
-    file_content = ""
-    if uploaded_file is not None:
-        file_content = uploaded_file.getvalue().decode("utf-8")
-
-with col2:
-    st.subheader("Example Detections")
-    num_detections = st.number_input("Number of example detections", min_value=1, value=3, step=1)
-    current_detections = [st.text_area(f"Example detection {i+1}", 
-                                       height=100, 
-                                       value="SELECT sourceIPAddress, eventName, userAgent\nFROM cloudtrail_logs\nWHERE eventName = 'ConsoleLogin' AND errorMessage LIKE '%Failed authentication%'\nGROUP BY sourceIPAddress, eventName, userAgent\nHAVING COUNT(*) > 10") for i in range(num_detections)]
-    st.subheader("Example Logs")
-    num_logs = st.number_input("Number of example logs", min_value=1, value=3, step=1)
-    example_logs = [st.text_area(f"Example log {i+1}", 
-                                 height=100, 
-                                 value="paste examples of your actual logs here, you may have different field names or logging structure") for i in range(num_logs)]
-
-st.subheader("Detection Writing Steps")
-detection_steps = st.text_area("Enter detection writing steps:", 
-                               height=150, 
-                               value="1. Identify the key indicators or behaviors from the threat intel\n2. Determine the relevant log sources and fields\n3. Write the query using the specified detection language\n4. Include appropriate filtering to reduce false positives\n5. Add comments to explain the logic of the detection")
-
-st.subheader("Alert Triage Steps")
-sop = st.text_area("Enter standard operating procedures or investigation steps for your current detections and alerts:", 
-                   height=150, 
-                   value="1. Validate the alert by reviewing the raw log data\n2. Check for any related alerts or suspicious activities from the same source\n3. Investigate the affected systems and user accounts\n4. Determine the potential impact and scope of the incident\n5. Escalate to the incident response team if a true positive is confirmed")
-
-
-
-# Your existing imports and function definitions go here
-
-# Initialize session state variables
+# Progress bar for multi-step process
 if 'step' not in st.session_state:
     st.session_state.step = 0
-if 'result' not in st.session_state:
-    st.session_state.result = None
-if 'detections' not in st.session_state:
-    st.session_state.detections = []
-if 'detection_names' not in st.session_state:
-    st.session_state.detection_names = []
-if 'selected_detection' not in st.session_state:
-    st.session_state.selected_detection = None
 
-# Your existing code for sidebar and input fields goes here
+# Function to update progress
+def update_progress():
+    # Cap the step at 5 for progress calculation
+    capped_step = min(st.session_state.step, 5)
+    progress_value = capped_step / 5
+    progress_bar.progress(progress_value)
+    
+    # Display the actual step number, even if it's beyond 5
+    step_counter.markdown(f"**Current Step: {st.session_state.step}/5**")
+    
+    # If all steps are completed, show a completion message
+    if st.session_state.step > 5:
+        st.success("All steps completed!")
+with tab1:
+    # Create placeholders for the progress bar and step counter
+    progress_bar = st.empty()
+    step_counter = st.empty()
 
-# Add a text input for the research query
-research_query = st.text_input("Enter your cybersecurity research topic:", 
-                               placeholder="E.g., 'threat hunting in Okta logs' or 'TTPs from CloudTrail logs used in AWS attacks'")
+    # Update progress at the beginning
+    update_progress()
 
-# Add new button for CrewAI threat research
-if st.button("🔍 Perform Threat Research"):
-    if research_query:
-        with st.spinner("Performing threat research... This may take a few minutes."):
-            research_result = perform_threat_research(research_query)
+# Main content layout
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Threat Intelligence Input")
+        description = st.text_area(
+            "Enter threat intelligence description:",
+            height=200,
+            value="Detect a user attempting to exfiltrate an Amazon EC2 AMI Snapshot. This rule lets you monitor the ModifyImageAttribute CloudTrail API calls to detect when an Amazon EC2 AMI snapshot is made public or shared with an AWS account. This rule also inspects: @requestParameters.launchPermission.add.items.group array to determine if the string all is contained. This is the indicator which means the RDS snapshot is made public. @requestParameters.launchPermission.add.items.userId array to determine if the string * is contained. This is the indicator which means the RDS snapshot was shared with a new or unknown AWS account.",
+            help="Provide a detailed description of the threat intelligence you want to analyze."
+        )
+        uploaded_file = st.file_uploader(
+            "Upload threat intel report or blog (optional)",
+            type=["txt", "pdf"],
+            help="You can optionally upload a threat intelligence report or blog post for analysis."
+        )
+        file_content = ""
+        if uploaded_file is not None:
+            file_content = uploaded_file.getvalue().decode("utf-8")
+
+    with col2:
+        st.subheader("Example Detections")
+        num_detections = st.number_input("Number of example detections", min_value=1, value=3, step=1)
+        current_detections = [
+            st.text_area(
+                f"Example detection {i+1}",
+                height=100,
+                value="SELECT sourceIPAddress, eventName, userAgent\nFROM cloudtrail_logs\nWHERE eventName = 'ConsoleLogin' AND errorMessage LIKE '%Failed authentication%'\nGROUP BY sourceIPAddress, eventName, userAgent\nHAVING COUNT(*) > 10",
+                help="Provide an example of an existing detection query in your environment."
+            ) for i in range(num_detections)
+        ]
         
-        st.subheader("Threat Research Results")
-        st.markdown(research_result)  # Using markdown for better formatting
-        
-        # Option to use research results in analysis
-        if st.button("Use Research in Analysis"):
-            # Append research results to the description or file_content
-            st.session_state.description = st.session_state.get('description', '') + f"\n\nAdditional Threat Research:\n{research_result}"
-            st.success("Research results added to the analysis.")
-    else:
-        st.warning("Please enter a research topic before performing threat research.")
+        st.subheader("Example Logs")
+        num_logs = st.number_input("Number of example logs", min_value=1, value=3, step=1)
+        example_logs = [
+            st.text_area(
+                f"Example log {i+1}",
+                height=100,
+                value="paste examples of your actual logs here, you may have different field names or logging structure",
+                help="Provide examples of actual log entries from your environment."
+            ) for i in range(num_logs)
+        ]
+
+    # Collapsible sections for additional inputs
+    with st.expander("Detection Writing Steps", expanded=False):
+        detection_steps = st.text_area(
+            "Enter detection writing steps:",
+            height=150,
+            value="1. Identify the key indicators or behaviors from the threat intel\n2. Determine the relevant log sources and fields\n3. Write the query using the specified detection language\n4. Include appropriate filtering to reduce false positives\n5. Add comments to explain the logic of the detection",
+            help="Outline the steps you typically follow when writing detection rules."
+        )
+
+    with st.expander("Alert Triage Steps", expanded=False):
+        sop = st.text_area(
+            "Enter standard operating procedures or investigation steps for your current detections and alerts:",
+            height=150,
+            value="1. Validate the alert by reviewing the raw log data\n2. Check for any related alerts or suspicious activities from the same source\n3. Investigate the affected systems and user accounts\n4. Determine the potential impact and scope of the incident\n5. Escalate to the incident response team if a true positive is confirmed",
+            help="Describe your standard operating procedures for triaging and investigating alerts."
+        )
+
+    def run_threat_research(query):
+        # Create a placeholder in the Streamlit UI
+        output_placeholder = st.empty()
+
+        # Run the threat_research.py script and capture its output
+        process = subprocess.Popen(['python', 'threat_research.py', query], 
+                                stdout=subprocess.PIPE, 
+                                stderr=subprocess.STDOUT,
+                                universal_newlines=True)
+
+        # Stream the output to the Streamlit UI
+        full_output = ""
+        for line in process.stdout:
+            full_output += line
+            output_placeholder.text_area("Research Progress:", full_output, height=400)
+
+        # Return the final result
+        return full_output
 
 if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.step > 0:
     if not description and not uploaded_file and st.session_state.step == 0:
@@ -414,6 +581,7 @@ if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.st
 
                 status.text("✅ Done")
                 st.session_state.step = 1
+                update_progress()
 
         if st.session_state.step >= 1:
             # Parse the result to extract detections
@@ -455,6 +623,7 @@ if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.st
 
             if st.button("Process Selected Detection"):
                 st.session_state.step = 2
+                update_progress()
 
         if st.session_state.step >= 2:
             # Process the remaining steps for the selected detection
@@ -509,14 +678,44 @@ if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.st
 
                 status.text("✅ Done")
                 st.session_state.step = i + 1
+                update_progress()
 
             if len(results) == 5:
+                st.session_state.step = 6  # Indicate completion
+                update_progress()
                 st.success("Processing complete!")
                 st.markdown(results[5])
+
+                # Add a button to restart the process
+                if st.button("Start Over"):
+                    st.session_state.step = 0
+                    update_progress()
+                    st.experimental_rerun()
             else:
                 st.error("An error occurred while processing the threat intelligence.")
 
-# Your existing footer code goes here
+with tab2:
+    # Threat Research section
+    st.subheader("Threat Research")
+    research_query = st.text_input(
+        "Enter your cybersecurity research topic:",
+        placeholder="E.g., 'threat hunting in Okta logs' or 'TTPs from CloudTrail logs used in AWS attacks'",
+        help="Specify a topic for additional threat research to supplement your analysis."
+    )
+
+    if st.button("🔍 Perform Threat Research", key="research_button"):
+        if research_query:
+            with st.spinner("Performing threat research... This may take a few minutes."):
+                research_result = run_threat_research(research_query)
+            
+            st.subheader("Threat Research Results")
+            st.markdown(research_result)
+            
+            if st.button("Use Research in Analysis"):
+                st.session_state.description = st.session_state.get('description', '') + f"\n\nAdditional Threat Research:\n{research_result}"
+                st.success("Research results added to the analysis.")
+        else:
+            st.warning("Please enter a research topic before performing threat research.")
 
 st.markdown("---")
 st.markdown(

@@ -1,24 +1,27 @@
 import os
+import sys
 from dotenv import load_dotenv
 from crewai import Agent, Task, Crew, Process
-from crewai_tools import SerperDevTool, EXASearchTool
+from crewai_tools import SerperDevTool, EXASearchTool, ScrapeWebsiteTool
 
 # Load environment variables
 load_dotenv()
 
 def perform_threat_research(query):
     # Initialize tools
-    search_tool = SerperDevTool()
+    #search_tool = SerperDevTool()
     exa_search_tool = EXASearchTool()
+    scrape_website_tool = ScrapeWebsiteTool()
 
     # Define agents
     researcher = Agent(
-        role='Cyber Threat Researcher',
-        goal=f'Uncover the latest threat intelligence related to: {query}',
-        backstory="As a seasoned cyber threat researcher, you're at the forefront of identifying and analyzing emerging threats. Your expertise helps organizations stay ahead of potential security risks.",
+        role='Cyber Threat Intelligence Researcher',
+        goal=f'Research the highest quality threat intelligence related to: {query}, only focusing on techniques, tactics, and procedures.',
+        backstory="As a seasoned cyber threat researcher, you're at the forefront of identifying and analyzing emerging threats. Your expertise helps security teams write the best detection logic to catch threats.",
         verbose=True,
         allow_delegation=True,
-        tools=[exa_search_tool]
+        max_iter=5,
+        tools=[exa_search_tool, scrape_website_tool]
     )
 
     analyst = Agent(
@@ -27,14 +30,15 @@ def perform_threat_research(query):
         backstory="With a keen eye for detail and a deep understanding of cyber threats, you excel at interpreting raw data and translating it into actionable intelligence for security teams.",
         verbose=True,
         allow_delegation=False,
-        tools=[exa_search_tool]
+        max_iter=5,
+        tools=[exa_search_tool, scrape_website_tool]
     )
 
     # Define tasks
     research_task = Task(
-        description=f"Research the latest threat intelligence related to: {query}. Focus on identifying TTPs, potential indicators of compromise, and overall threat landscape.",
+        description=f"Research the latest threat intelligence related to: {query}. Only focus on identifying TTPs and behaviors that have clear log evidence so they can be used to write detections.",
         agent=researcher,
-        expected_output="A comprehensive report detailing the latest threat intelligence findings, including TTPs and potential IoCs.",
+        expected_output="A comprehensive report detailing the latest threat intelligence findings, including threat names and descriptions.",
         tools=[exa_search_tool]
     )
 
@@ -57,8 +61,13 @@ def perform_threat_research(query):
     result = crew.kickoff(inputs={'query': query})
     return result
 
-# Example usage
+# Modified main block for subprocess compatibility
 if __name__ == "__main__":
-    query = "threat hunting in Okta logs"
-    result = perform_threat_research(query)
-    print(result)
+    if len(sys.argv) > 1:
+        query = sys.argv[1]
+        print(f"Starting threat research for query: {query}")
+        result = perform_threat_research(query)
+        print("Research completed. Final result:")
+        print(result)
+    else:
+        print("Please provide a query as a command-line argument.")

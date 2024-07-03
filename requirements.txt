@@ -4,5 +4,4 @@ python-dotenv
 openai
 anthropic
 crewai
-#pip install 'crewai[tools]'
 exa-py
