@@ -17,7 +17,7 @@ Diana is a Streamlit application that processes cybersecurity threat intelligenc
    ```
 2. Create a virtual environment and activate it:
    ```
-   python -m venv venv
+   python3.10 -m venv venv
    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
    ```
 3. Install the required dependencies:
@@ -42,7 +42,8 @@ Then, open your web browser and go to `http://localhost:8501`.
 1. Obtain API keys:
    - For OpenAI: Visit https://platform.openai.com/account/api-keys
    - For Anthropic: Visit https://www.anthropic.com or follow their documentation
-   - For EXA AI: Visit https://exa.ai to obtain your API key
+   - For EXA AI: Visit https://exa.ai to obtain your API key. Exa searches the web based on the meaning
+   of your search, as opposed to keyword search with Google. https://exa.ai/faq
 
 2. Add your API keys to the `.env` file:
    ```
