@@ -3,7 +3,4 @@ requests
 python-dotenv
 openai
 anthropic
-crewai
-exa-py
-langchain_openai
 PyMuPDF

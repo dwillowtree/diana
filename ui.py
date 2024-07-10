@@ -4,7 +4,6 @@ import streamlit as st
 from dotenv import load_dotenv
 import os
 import fitz
-from threat_research import perform_threat_research
 
 # Load environment variables
 load_dotenv()
@@ -169,30 +168,41 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
         st.subheader("Configuration")
         
         # LLM Provider selection with tooltip
-        llm_provider = st.selectbox(
+        llm_provider = st.sidebar.selectbox(
             "LLM Provider",
             ["OpenAI", "Anthropic"],
             index=1,
             key="llm_provider",
             help="Choose the AI model provider for processing."
         )
-        
-        # Model selection based on provider
+
+        # API Key input based on the provider
         if llm_provider == "OpenAI":
-            model = st.selectbox(
+            api_key = st.sidebar.text_input(
+                "OpenAI API Key",
+                type="password",
+                help="Enter your OpenAI API key"
+            )
+            model = st.sidebar.selectbox(
                 "Model Type",
                 ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"],
                 key="openai_model",
                 help="Select the OpenAI model to use for processing."
             )
         else:
-            model = st.selectbox(
+            api_key = st.sidebar.text_input(
+                "Anthropic API Key",
+                type="password",
+                help="Enter your Anthropic API key"
+            )
+            model = st.sidebar.selectbox(
                 "Model Type",
                 ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
-                index=2, 
+                index=2,
                 key="anthropic_model",
                 help="Select the Anthropic model to use for processing."
             )
+
         
         # Data types multiselect with search functionality
         data_types = st.multiselect(
@@ -238,7 +248,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             key="max_tokens_slider",
             help="Maximum number of tokens in the generated response. Higher values allow for longer outputs but may increase processing time."
         )
-        
+
         # Open Source Detection Content (collapsed by default)
         with st.expander("Open Source Detection Content", expanded=False):
             st.markdown("[![Elastic](https://img.shields.io/badge/Elastic-005571?style=for-the-badge&logo=elastic&logoColor=white)](https://github.com/elastic/detection-rules)")
@@ -350,30 +360,6 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                 help="Describe your standard operating procedures for triaging and investigating alerts."
             )
 
-        def run_threat_research(query, crewai_model):
-            # Create a placeholder in the Streamlit UI
-            output_placeholder = st.empty()
-
-            # Prepare the environment variables
-            env = os.environ.copy()
-            env["OPENAI_MODEL_NAME"] = crewai_model
-
-            # Run the threat_research.py script and capture its output
-            process = subprocess.Popen(['python', 'threat_research.py', query], 
-                                    stdout=subprocess.PIPE, 
-                                    stderr=subprocess.STDOUT,
-                                    universal_newlines=True,
-                                    env=env)
-
-            # Stream the output to the Streamlit UI
-            full_output = ""
-            for line in process.stdout:
-                full_output += line
-                output_placeholder.text_area("Research Progress:", full_output, height=400)
-
-            # Return the final result
-            return full_output
-
         if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.step > 0:
             if not description and not uploaded_file and st.session_state.step == 0:
                 st.error("Please provide either a threat intel description or upload a file.")
@@ -397,9 +383,9 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
 
                     with st.spinner("Analyzing threat intelligence..."):
                         if llm_provider == "OpenAI":
-                            result = process_with_openai(formatted_prompt, model, max_tokens, temperature)
+                            result = process_with_openai(api_key, formatted_prompt, model, max_tokens, temperature)
                         else:
-                            result = process_with_anthropic(formatted_prompt, model, max_tokens, temperature)
+                            result = process_with_anthropic(api_key, formatted_prompt, model, max_tokens, temperature)
 
                     if result is None:
                         st.error("An error occurred while analyzing the threat intelligence.")
@@ -520,9 +506,9 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
 
                         with st.spinner(f"Processing {step_name}..."):
                             if llm_provider == "OpenAI":
-                                result = process_with_openai(formatted_prompt, model, max_tokens, temperature)
+                                result = process_with_openai(api_key, formatted_prompt, model, max_tokens, temperature)
                             else:
-                                result = process_with_anthropic(formatted_prompt, model, max_tokens, temperature)
+                                result = process_with_anthropic(api_key, formatted_prompt, model, max_tokens, temperature)
 
                         if result is None:
                             st.error(f"An error occurred while processing {step_name}.")
@@ -557,43 +543,6 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
         st.subheader("Threat Research Crew")
         
         st.markdown("""
-        This feature spins up a crew of autonomous AI agents that perform threat detection research on your topic of choice. They are maxed out at 5 iterations each, so no need to worry
-        about them going rogue and taking over the world.
-
-        This feature is currently limited to OpenAI models.
-        
-        These agents use Exa, which employs semantic search (embeddings) to search the web, providing more contextually relevant results than traditional keyword-based search engines like Google.
-        
-        **Examples of research topics:**
-        - Threat hunting in Okta logs
-        - Most common TTPs used by attackers in AWS
-        - Latest detection strategies for ransomware in Windows environments
+        To use this feature please run the streamlit app locally according to the instructions here https://github.com/dwillowtree/diana
         """)
-
-        # Add the CrewAI model selection here
-        crewai_model = st.selectbox(
-            "CrewAI Model",
-            ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"],
-            index=0,  # Set default to gpt-3.5-turbo
-            key="crewai_model",
-            help="Select the model for CrewAI to use"
-        )
-
-        research_query = st.text_input(
-            "Enter your cybersecurity research topic:",
-            placeholder="E.g., 'Threat hunting in Okta logs' or 'TTPs from CloudTrail logs used in AWS attacks'",
-            help="Specify a topic for in-depth threat research to supplement your analysis."
-        )
-
-        if st.button("🔍 Perform Threat Research", key="research_button"):
-            if research_query:
-                with st.spinner("Performing threat research... This may take a few minutes."):
-                    research_result = run_threat_research(research_query, crewai_model)
-                
-                st.subheader("Threat Research Results")
-                st.markdown(research_result)
-                
-            else:
-                st.warning("Please enter a research topic before performing threat research.")
-
     st.markdown("---")
