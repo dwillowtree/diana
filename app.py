@@ -162,7 +162,7 @@ Log Sources
 [List of specific log sources or data types required for this detection]
 
 Investigation Steps
-[Numbered list of investigation steps from Prompt 3]
+[Numbered list of investigation steps from {previous_investigation_steps}]
 
 Performance Considerations
 [Brief notes on expected performance, including estimated false positive rate]
@@ -319,7 +319,37 @@ sidebar = st.sidebar
 
 with sidebar:
     st.image("https://i.imgur.com/wEHCCaj.png", width=300)
+    st.markdown(
+        """
+        <div style="text-align: center;">
+            Developed by Dylan Williams <a href="https://www.linkedin.com/in/dylan-williams-a2927599/" target="_blank">LinkedIn</a> | 
+            <a href="https://github.com/dwillowtree/diana" target="_blank">GitHub Repository</a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    st.markdown("---")
 
+    # Quick Start Guide section (collapsed by default)
+    with st.expander("Quick Start Guide", expanded=False):
+        st.markdown("""
+        DIANA (Detection and Intelligence Analysis for New Alerts) automates detection creation from threat intelligence.
+
+        **Note: Providing high-quality example detections, logs, and your detection writing process is critical for optimal results.**
+
+        ### Steps:
+        1. Select LLM provider and model
+        2. Choose security data/log type(s) for detection
+        3. Select detection language
+        4. Input threat TTPs description or upload report/blog post
+        5. **Important:** Provide 3-7 diverse, high-quality example detections for the chosen log source
+        6. **Important:** Provide 3-7 example log sources
+        7. **Recommended:** Outline your typical detection writing steps (this helps DIANA follow your workflow)
+        8. Describe alert triage/investigation steps
+        9. Click 'Process Threat Intel'
+
+        Remember: The quality and diversity of your inputs directly impact DIANA's output. Take time to provide comprehensive examples and follow your standard workflow for best results.
+        """)
     # About DIANA section (collapsed by default)
     with st.expander("About DIANA", expanded=False):
         st.markdown("""
@@ -330,16 +360,8 @@ with sidebar:
         - Reduce manual effort in researching log sources and writing queries
         - Generate investigation steps and quality assurance checks
 
-        ### How to Use:
-        1. Configure settings in the sidebar
-        2. Enter threat intelligence or upload a report
-        3. Provide example detections and logs
-        4. Add detection writing steps and SOPs
-        5. Click 'Process Threat Intel' to generate results
-
-        DIANA will guide you through the entire process, from threat analysis to final detection creation.
+        DIANA leverages advanced AI capabilities to enhance efficiency and accuracy in cybersecurity threat detection, allowing security teams to respond more quickly and effectively to emerging threats.
         """)
-
     st.subheader("Configuration")
     
     # LLM Provider selection with tooltip
@@ -354,7 +376,7 @@ with sidebar:
     if llm_provider == "OpenAI":
         model = st.selectbox(
             "Model Type",
-            ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
+            ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"],
             key="openai_model",
             help="Select the OpenAI model to use for processing."
         )
@@ -370,11 +392,7 @@ with sidebar:
     data_types = st.multiselect(
         "Security Data/Log Type(s)",
         [
-            "Okta Logs", "AWS CloudTrail Logs", "Kubernetes Audit Logs", "GitLab Audit Logs",
-            "Azure Activity Logs", "Google Cloud Audit Logs", "Microsoft 365 Audit Logs",
-            "Cloudflare Logs", "Docker Container Logs", "AWS GuardDty Findings",
-            "AWS VPC Flow Logs", "Azure Sentinel Logs", "Google Cloud Security Command Center Logs",
-            "GitHub Audit Logs", "Salesforce Event Monitoring Logs"
+            "Okta Logs", "AWS CloudTrail Logs", "Kubernetes Audit Logs", "GitLab Audit Logs"
         ],
         default=["AWS CloudTrail Logs"],
         key="security_data_type",
@@ -386,11 +404,8 @@ with sidebar:
         "Detection Language",
         [
             "AWS Athena", "StreamAlert", "Splunk SPL", "Elastic Query DSL",
-            "Kusto Query Language (KQL)", "Google Cloud Logging Query Language",
-            "Sigma Rules", "YARA Rules", "Open Policy Agent (OPA) Rego",
-            "AWS Security Hub Custom Insights", "Falco Rules",
-            "Panther Detection-as-Code (Python)", "Sumo Logic Search Query Language",
-            "Datadog Security Rules"
+            "Kusto Query Language (KQL)",
+            "Sigma Rules","Panther Detection-as-Code (Python)"
         ],
         key="detection_language_select",
         help="Choose the query language for your detection rules."
@@ -448,9 +463,6 @@ def update_progress():
     # Display the actual step number, even if it's beyond 5
     step_counter.markdown(f"**Current Step: {st.session_state.step}/5**")
     
-    # If all steps are completed, show a completion message
-    if st.session_state.step > 5:
-        st.success("All steps completed!")
 with tab1:
     # Create placeholders for the progress bar and step counter
     progress_bar = st.empty()
@@ -537,170 +549,195 @@ with tab1:
         # Return the final result
         return full_output
 
-if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.step > 0:
-    if not description and not uploaded_file and st.session_state.step == 0:
-        st.error("Please provide either a threat intel description or upload a file.")
-    else:
-        if st.session_state.step == 0:
-            # Step 1: Analyze Threat Intel
-            st.subheader("Step 1: Analyze Threat Intel")
-            status = st.empty()
-            details = st.expander("View Details", expanded=False)
-
-            status.text("⏳ Running...")
-
-            context = {
-                "description": description,
-                "file_content": file_content,
-                "data_types": ", ".join(data_types),
-            }
-
-            formatted_prompt = prompts[0].format(**context)
-
-            with details:
-                st.text("Prompt:")
-                st.code(formatted_prompt, language="markdown")
-
-            if llm_provider == "OpenAI":
-                result = process_with_openai(formatted_prompt, model, max_tokens, temperature)
-            else:
-                result = process_with_anthropic(formatted_prompt, model, max_tokens, temperature)
-
-            if result is None:
-                st.error("An error occurred while analyzing the threat intelligence.")
-            else:
-                # Store the result in session state
-                st.session_state.result = result
-                # Add debug output here
-                st.subheader("Debug: Raw result from threat intelligence analysis")
-                st.code(st.session_state.result, language="markdown")
-
-                with details:
-                    st.text("Result:")
-                    st.code(st.session_state.result, language="markdown")
-
-                status.text("✅ Done")
-                st.session_state.step = 1
-                update_progress()
-
-        if st.session_state.step >= 1:
-            # Parse the result to extract detections
-            detections = []
-            detection_names = []
-            current_detection = ""
-            for line in st.session_state.result.split('\n'):
-                if line.strip().startswith(("Detection Name:", "1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.")):
-                    if current_detection:
-                        detections.append(current_detection.strip())
-                        current_detection = ""
-                    name = line.split(":", 1)[-1].strip() if ":" in line else line.split(".", 1)[-1].strip()
-                    name = name.lstrip("0123456789. ")
-                    detection_names.append(name)
-                current_detection += line + "\n"
-            
-            if current_detection:
-                detections.append(current_detection.strip())
-
-            if not detection_names:
-                st.warning("No specific detections were identified. The entire analysis will be processed as a single detection.")
-                detection_names = ["Entire Analysis"]
-                detections = [st.session_state.result]
-
-            st.session_state.detections = detections
-            st.session_state.detection_names = detection_names
-
-            # Display the number of detections found
-            st.info(f"Number of detections found: {len(detection_names)}")
-
-            # Optionally, display the names of the detections
-            if len(detection_names) > 1:
-                st.write("Detections found:")
-                for name in detection_names:
-                    st.write(f"- {name}")
-
-            # Allow user to select a detection
-            st.session_state.selected_detection = st.selectbox("Select a detection to process:", st.session_state.detection_names)
-
-            if st.button("Process Selected Detection"):
-                st.session_state.step = 2
-                update_progress()
-
-        if st.session_state.step >= 2:
-            # Process the remaining steps for the selected detection
-            results = {}
-            results[1] = st.session_state.result  # Store the first result
-
-            for i in range(2, 6):
-                if st.session_state.step > i:
-                    continue
-
-                step_name = ['Create Detection Rule', 'Develop Investigation Guide', 'Quality Assurance Review', 'Final Summary'][i-2]
-                
-                st.subheader(f"Step {i}: {step_name}")
-                status = st.empty()
+    if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.step > 0:
+        if not description and not uploaded_file and st.session_state.step == 0:
+            st.error("Please provide either a threat intel description or upload a file.")
+        else:
+            if st.session_state.step == 0:
+                # Step 1: Analyze Threat Intel
+                st.subheader("Step 1: Analyze Threat Intel")
                 details = st.expander("View Details", expanded=False)
 
-                status.text("⏳ Running...")
-
                 context = {
-                    "detection_language": detection_language,
-                    "current_detections": "\n".join(current_detections),
-                    "example_logs": "\n".join(example_logs),
-                    "detection_steps": detection_steps,
-                    "sop": sop,
-                    "previous_analysis": next((d for d in st.session_state.detections if st.session_state.selected_detection in d), st.session_state.result),
-                    "previous_detection_rule": results.get(2, ""),
-                    "previous_investigation_steps": results.get(3, ""),
-                    "previous_qa_findings": results.get(4, "")
+                    "description": description,
+                    "file_content": file_content,
+                    "data_types": ", ".join(data_types),
                 }
 
-                formatted_prompt = prompts[i-1].format(**context)
+                formatted_prompt = prompts[0].format(**context)
 
                 with details:
                     st.text("Prompt:")
                     st.code(formatted_prompt, language="markdown")
 
-                if llm_provider == "OpenAI":
-                    result = process_with_openai(formatted_prompt, model, max_tokens, temperature)
-                else:
-                    result = process_with_anthropic(formatted_prompt, model, max_tokens, temperature)
+                with st.spinner("Analyzing threat intelligence..."):
+                    if llm_provider == "OpenAI":
+                        result = process_with_openai(formatted_prompt, model, max_tokens, temperature)
+                    else:
+                        result = process_with_anthropic(formatted_prompt, model, max_tokens, temperature)
 
                 if result is None:
-                    status.error(f"An error occurred at step {i}.")
-                    st.error(f"An error occurred while processing step {i}.")
-                    break
+                    st.error("An error occurred while analyzing the threat intelligence.")
+                else:
+                    # Store the result in session state
+                    st.session_state.result = result
 
-                results[i] = result
+                    with details:
+                        st.text("Result:")
+                        st.code(st.session_state.result, language="markdown")
 
-                with details:
-                    st.text("Result:")
-                    st.code(result, language="markdown")
-
-                status.text("✅ Done")
-                st.session_state.step = i + 1
-                update_progress()
-
-            if len(results) == 5:
-                st.session_state.step = 6  # Indicate completion
-                update_progress()
-                st.success("Processing complete!")
-                st.markdown(results[5])
-
-                # Add a button to restart the process
-                if st.button("Start Over"):
-                    st.session_state.step = 0
+                    st.success("Analysis complete!")
+                    st.session_state.step = 1
                     update_progress()
-                    st.experimental_rerun()
-            else:
-                st.error("An error occurred while processing the threat intelligence.")
+
+            if st.session_state.step >= 1:
+                with st.spinner("Parsing detections..."):
+                    # Parse the result to extract detections
+                    detections = []
+                    detection_names = []
+                    threat_behaviors = []
+                    current_detection = ""
+                    current_threat_behavior = ""
+                    capturing_threat_behavior = False
+
+                    for line in st.session_state.result.split('\n'):
+                        stripped_line = line.strip()
+                        if stripped_line.startswith(("Detection Name:", "1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.")):
+                            if current_detection:
+                                detections.append(current_detection.strip())
+                                threat_behaviors.append(current_threat_behavior.strip())
+                                current_detection = ""
+                                current_threat_behavior = ""
+                            name = stripped_line.split(":", 1)[-1].strip() if ":" in stripped_line else stripped_line.split(".", 1)[-1].strip()
+                            name = name.lstrip("0123456789. ")
+                            detection_names.append(name)
+                        elif "Threat Behavior:" in stripped_line:
+                            current_threat_behavior = stripped_line.split("Threat Behavior:", 1)[-1].strip()
+                            capturing_threat_behavior = True
+                        elif capturing_threat_behavior and any(stripped_line.startswith(x) for x in ["Log Evidence:", "Context:"]):
+                            capturing_threat_behavior = False
+                        elif capturing_threat_behavior:
+                            current_threat_behavior += " " + stripped_line
+                        current_detection += line + "\n"
+                    
+                    if current_detection:
+                        detections.append(current_detection.strip())
+                        threat_behaviors.append(current_threat_behavior.strip())
+
+                    if not detection_names:
+                        st.warning("No specific detections were identified. The entire analysis will be processed as a single detection.")
+                        detection_names = ["Entire Analysis"]
+                        detections = [st.session_state.result]
+                        threat_behaviors = [""]
+
+                    st.session_state.detections = detections
+                    st.session_state.detection_names = detection_names
+                    st.session_state.threat_behaviors = threat_behaviors
+
+                # Display the number of detections found
+                st.info(f"Number of detections found: {len(detection_names)}")
+
+                # Display the names of the detections and their threat behaviors
+                if len(detection_names) >= 1:
+                    st.write("Detections found:")
+                    for name, behavior in zip(detection_names, threat_behaviors):
+                        st.markdown(f"**{name}**")
+                        st.write(f"Threat Behavior: {behavior}")
+                        st.write("---")
+
+                # Allow user to select a detection
+                st.session_state.selected_detection = st.selectbox("Select a detection to process:", st.session_state.detection_names)
+
+                if st.button("Process Selected Detection"):
+                    st.session_state.step = 2
+                    update_progress()
+            
+
+            if st.session_state.step >= 2:
+                # Process the remaining steps for the selected detection
+                results = {}
+                results[1] = st.session_state.result  # Store the first result
+
+                for i in range(2, 6):
+                    if st.session_state.step > i:
+                        continue
+
+                    step_name = ['Create Detection Rule', 'Develop Investigation Guide', 'Quality Assurance Review', 'Final Summary'][i-2]
+                    
+                    st.subheader(f"Step {i}: {step_name}")
+                    details = st.expander("View Details", expanded=False)
+
+                    context = {
+                        "detection_language": detection_language,
+                        "current_detections": "\n".join(current_detections),
+                        "example_logs": "\n".join(example_logs),
+                        "detection_steps": detection_steps,
+                        "sop": sop,
+                        "previous_analysis": next((d for d in st.session_state.detections if st.session_state.selected_detection in d), st.session_state.result),
+                        "previous_detection_rule": results.get(2, ""),
+                        "previous_investigation_steps": results.get(3, ""),
+                        "previous_qa_findings": results.get(4, "")
+                    }
+
+                    formatted_prompt = prompts[i-1].format(**context)
+
+                    with details:
+                        st.text("Prompt:")
+                        st.code(formatted_prompt, language="markdown")
+
+                    with st.spinner(f"Processing {step_name}..."):
+                        if llm_provider == "OpenAI":
+                            result = process_with_openai(formatted_prompt, model, max_tokens, temperature)
+                        else:
+                            result = process_with_anthropic(formatted_prompt, model, max_tokens, temperature)
+
+                    if result is None:
+                        st.error(f"An error occurred while processing {step_name}.")
+                        break
+
+                    results[i] = result
+
+                    with details:
+                        st.text("Result:")
+                        st.code(result, language="markdown")
+
+                    st.success(f"{step_name} complete!")
+                    st.session_state.step = i + 1
+                    update_progress()
+
+                if len(results) == 5:
+                    st.session_state.step = 6  # Indicate completion
+                    update_progress()
+                    st.success("Processing complete!")
+                    st.markdown(results[5])
+
+                    # Add a button to restart the process
+                    if st.button("Start Over"):
+                        st.session_state.step = 0
+                        update_progress()
+                        st.experimental_rerun()
+                else:
+                    st.error("An error occurred while processing the threat intelligence.")
 
 with tab2:
     # Threat Research section
-    st.subheader("Threat Research")
+    st.subheader("Threat Research Crew")
+    
+    st.markdown("""
+    This feature spins up a crew of autonomous AI agents that perform threat detection research on your topic of choice. 
+    
+    These agents use Exa, which employs semantic search (embeddings) to search the web, providing more contextually relevant results than traditional keyword-based search engines like Google.
+    
+    **Examples of research topics:**
+    - Threat hunting in Okta logs
+    - Most common TTPs used by attackers in AWS
+    - Latest detection strategies for ransomware in Windows environments
+    """)
+
     research_query = st.text_input(
         "Enter your cybersecurity research topic:",
-        placeholder="E.g., 'threat hunting in Okta logs' or 'TTPs from CloudTrail logs used in AWS attacks'",
-        help="Specify a topic for additional threat research to supplement your analysis."
+        placeholder="E.g., 'Threat hunting in Okta logs' or 'TTPs from CloudTrail logs used in AWS attacks'",
+        help="Specify a topic for in-depth threat research to supplement your analysis."
     )
 
     if st.button("🔍 Perform Threat Research", key="research_button"):
@@ -718,12 +755,3 @@ with tab2:
             st.warning("Please enter a research topic before performing threat research.")
 
 st.markdown("---")
-st.markdown(
-    """
-    <div style="text-align: center;">
-        Developed by Dylan Williams <a href="https://www.linkedin.com/in/dylan-williams-a2927599/" target="_blank">LinkedIn</a> | 
-        <a href="https://github.com/dwillowtree/diana" target="_blank">GitHub Repository</a>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
