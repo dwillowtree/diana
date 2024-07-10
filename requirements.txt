@@ -6,3 +6,4 @@ anthropic
 crewai
 exa-py
 langchain_openai
+PyMuPDF
