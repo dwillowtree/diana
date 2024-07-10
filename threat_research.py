@@ -1,6 +1,7 @@
 import os
 import sys
 from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
 from crewai import Agent, Task, Crew, Process
 from crewai_tools import SerperDevTool, EXASearchTool, ScrapeWebsiteTool
 
@@ -8,8 +9,9 @@ from crewai_tools import SerperDevTool, EXASearchTool, ScrapeWebsiteTool
 load_dotenv()
 
 def perform_threat_research(query):
+
+    openai_model = os.getenv("OPENAI_MODEL_NAME", "gpt-4")
     # Initialize tools
-    #search_tool = SerperDevTool()
     exa_search_tool = EXASearchTool()
     scrape_website_tool = ScrapeWebsiteTool()
 
@@ -20,6 +22,7 @@ def perform_threat_research(query):
         backstory="As a seasoned cyber threat researcher, you're at the forefront of identifying and analyzing emerging threats. Your expertise helps security teams write the best detection logic to catch threats.",
         verbose=True,
         allow_delegation=True,
+        llm=ChatOpenAI(model_name=openai_model),
         max_iter=5,
         tools=[exa_search_tool, scrape_website_tool]
     )
@@ -30,6 +33,7 @@ def perform_threat_research(query):
         backstory="With a keen eye for detail and a deep understanding of cyber threats, you excel at interpreting raw data and translating it into actionable intelligence for security teams.",
         verbose=True,
         allow_delegation=False,
+        llm=ChatOpenAI(model_name=openai_model),
         max_iter=5,
         tools=[exa_search_tool, scrape_website_tool]
     )

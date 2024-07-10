@@ -447,7 +447,7 @@ st.title("🛡️ D.I.A.N.A.")
 st.subheader("Detection and Intelligence Analysis for New Alerts")
 
 # Create tabs for main workflow and threat research
-tab1, tab2 = st.tabs(["Detection Engineering", "Threat Research Crew"])
+tab1, tab2 = st.tabs(["Detection Engineering", "Threat Research Crew [Experimental]"])
 
 # Progress bar for multi-step process
 if 'step' not in st.session_state:
@@ -530,15 +530,20 @@ with tab1:
             help="Describe your standard operating procedures for triaging and investigating alerts."
         )
 
-    def run_threat_research(query):
+    def run_threat_research(query, crewai_model):
         # Create a placeholder in the Streamlit UI
         output_placeholder = st.empty()
+
+        # Prepare the environment variables
+        env = os.environ.copy()
+        env["OPENAI_MODEL_NAME"] = crewai_model
 
         # Run the threat_research.py script and capture its output
         process = subprocess.Popen(['python', 'threat_research.py', query], 
                                 stdout=subprocess.PIPE, 
                                 stderr=subprocess.STDOUT,
-                                universal_newlines=True)
+                                universal_newlines=True,
+                                env=env)
 
         # Stream the output to the Streamlit UI
         full_output = ""
@@ -725,6 +730,8 @@ with tab2:
     
     st.markdown("""
     This feature spins up a crew of autonomous AI agents that perform threat detection research on your topic of choice. 
+
+    This feature is currently limited to OpenAI models.
     
     These agents use Exa, which employs semantic search (embeddings) to search the web, providing more contextually relevant results than traditional keyword-based search engines like Google.
     
@@ -733,6 +740,15 @@ with tab2:
     - Most common TTPs used by attackers in AWS
     - Latest detection strategies for ransomware in Windows environments
     """)
+
+    # Add the CrewAI model selection here
+    crewai_model = st.selectbox(
+        "CrewAI Model",
+        ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"],
+        index=0,  # Set default to gpt-3.5-turbo
+        key="crewai_model",
+        help="Select the model for CrewAI to use"
+    )
 
     research_query = st.text_input(
         "Enter your cybersecurity research topic:",
@@ -743,14 +759,11 @@ with tab2:
     if st.button("🔍 Perform Threat Research", key="research_button"):
         if research_query:
             with st.spinner("Performing threat research... This may take a few minutes."):
-                research_result = run_threat_research(research_query)
+                research_result = run_threat_research(research_query, crewai_model)
             
             st.subheader("Threat Research Results")
             st.markdown(research_result)
             
-            if st.button("Use Research in Analysis"):
-                st.session_state.description = st.session_state.get('description', '') + f"\n\nAdditional Threat Research:\n{research_result}"
-                st.success("Research results added to the analysis.")
         else:
             st.warning("Please enter a research topic before performing threat research.")
 
