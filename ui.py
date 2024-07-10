@@ -359,193 +359,193 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                 placeholder="1. Validate the alert by reviewing the raw log data\n2. Check for any related alerts or suspicious activities from the same source\n3. Investigate the affected systems and user accounts\n4. Determine the potential impact and scope of the incident\n5. Escalate to the incident response team if a true positive is confirmed",
                 help="Describe your standard operating procedures for triaging and investigating alerts."
             )
-       # Process Threat Intel button
-    if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.step > 0:
-        if not description and not uploaded_file and st.session_state.step == 0:
-            st.error("Please provide either a threat intel description or upload a file.")
-        else:
-            if st.session_state.step == 0:
-                # Step 1: Analyze Threat Intel
-                st.subheader("Step 1: Analyze Threat Intel")
-                details = st.expander("View Details", expanded=False)
-
-                context = {
-                    "description": description,
-                    "file_content": file_content,
-                    "data_types": ", ".join(data_types),
-                }
-
-                formatted_prompt = prompts[0].format(**context)
-
-                with details:
-                    st.text("Prompt:")
-                    st.code(formatted_prompt, language="markdown")
-
-                with st.spinner("Analyzing threat intelligence..."):
-                    if llm_provider == "OpenAI":
-                        result = process_with_openai(api_key, formatted_prompt, model, max_tokens, temperature)
-                    else:
-                        result = process_with_anthropic(api_key, formatted_prompt, model, max_tokens, temperature)
-
-                if result is None:
-                    st.error("An error occurred while analyzing the threat intelligence.")
-                else:
-                    # Store the result in session state
-                    st.session_state.result = result
-
-                    with details:
-                        st.text("Result:")
-                        st.code(st.session_state.result, language="markdown")
-
-                    st.success("Analysis complete!")
-                    st.session_state.step = 1
-                    update_progress()
-
-            if st.session_state.step >= 1:
-                with st.spinner("Parsing detections..."):
-                    # Parse the result to extract detections
-                    detections = []
-                    current_detection = {"name": "", "behavior": "", "log_evidence": "", "context": ""}
-                    capturing_threat_behavior = False
-                    capturing_log_evidence = False
-                    capturing_context = False
-
-                    for line in st.session_state.result.split('\n'):
-                        stripped_line = line.strip()
-                        if stripped_line.startswith(("Detection Name:", "1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.")):
-                            if current_detection["name"]:
-                                detections.append(current_detection)
-                                current_detection = {"name": "", "behavior": "", "log_evidence": "", "context": ""}
-                            name = stripped_line.split(":", 1)[-1].strip() if ":" in stripped_line else stripped_line.split(".", 1)[-1].strip()
-                            name = name.lstrip("0123456789. ")
-                            current_detection["name"] = name
-                        elif "Threat Behavior:" in stripped_line:
-                            capturing_threat_behavior = True
-                            capturing_log_evidence = False
-                            capturing_context = False
-                            current_detection["behavior"] = stripped_line.split("Threat Behavior:", 1)[-1].strip()
-                        elif "Log Evidence:" in stripped_line:
-                            capturing_threat_behavior = False
-                            capturing_log_evidence = True
-                            capturing_context = False
-                            current_detection["log_evidence"] = stripped_line.split("Log Evidence:", 1)[-1].strip()
-                        elif "Context:" in stripped_line:
-                            capturing_threat_behavior = False
-                            capturing_log_evidence = False
-                            capturing_context = True
-                            current_detection["context"] = stripped_line.split("Context:", 1)[-1].strip()
-                        elif capturing_threat_behavior:
-                            current_detection["behavior"] += " " + stripped_line
-                        elif capturing_log_evidence:
-                            current_detection["log_evidence"] += " " + stripped_line
-                        elif capturing_context:
-                            current_detection["context"] += " " + stripped_line
-
-                    if current_detection["name"]:
-                        detections.append(current_detection)
-
-                    if not detections:
-                        st.warning("No specific detections were identified. The entire analysis will be processed as a single detection.")
-                        detections = [{"name": "Entire Analysis", "behavior": st.session_state.result, "log_evidence": "", "context": ""}]
-
-                    st.session_state.detections = detections
-
-                # Display the number of detections found
-                st.info(f"Number of detections found: {len(detections)}")
-
-                # Display the names of the detections and their threat behaviors
-                if detections:
-                    st.write("Detections found:")
-                    for detection in detections:
-                        st.markdown(f"**Detection Name:** {detection['name']}")
-                        st.write(f"**Threat Behavior:** {detection['behavior']}")
-                        st.write(f"**Log Evidence:** {detection['log_evidence']}")
-                        st.write(f"**Context:** {detection['context']}")
-                        st.write("---")
-
-                # Allow user to select a detection
-                selected_detection_name = st.selectbox("Select a detection to process:", [d["name"] for d in st.session_state.detections])
-
-                if st.button("Process Selected Detection"):
-                    selected_detection = next(d for d in st.session_state.detections if d["name"] == selected_detection_name)
-                    st.session_state.selected_detection = selected_detection
-                    st.session_state.step = 2
-                    update_progress()
-
-            if st.session_state.step >= 2:
-                # Process the remaining steps for the selected detection
-                selected_detection = st.session_state.selected_detection
-
-                st.write("Processing the selected detection:")
-                st.markdown(f"**Detection Name:** {selected_detection['name']}")
-                st.write(f"**Threat Behavior:** {selected_detection['behavior']}")
-                st.write(f"**Log Evidence:** {selected_detection['log_evidence']}")
-                st.write(f"**Context:** {selected_detection['context']}")
-
-                # Further processing steps...
-                results = {}
-                results[1] = st.session_state.result  # Store the first result
-
-                for i in range(2, 6):
-                    if st.session_state.step > i:
-                        continue
-
-                    step_name = ['Create Detection Rule', 'Develop Investigation Guide', 'Quality Assurance Review', 'Final Summary'][i-2]
-                    
-                    st.subheader(f"Step {i}: {step_name}")
+        # Process Threat Intel button
+        if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.step > 0:
+            if not description and not uploaded_file and st.session_state.step == 0:
+                st.error("Please provide either a threat intel description or upload a file.")
+            else:
+                if st.session_state.step == 0:
+                    # Step 1: Analyze Threat Intel
+                    st.subheader("Step 1: Analyze Threat Intel")
                     details = st.expander("View Details", expanded=False)
 
                     context = {
-                        "detection_language": detection_language,
-                        "current_detections": "\n".join(current_detections),
-                        "example_logs": "\n".join(example_logs),
-                        "detection_steps": detection_steps,
-                        "sop": sop,
-                        "previous_analysis": selected_detection,  # Use the selected detection
-                        "previous_detection_rule": results.get(2, ""),
-                        "previous_investigation_steps": results.get(3, ""),
-                        "previous_qa_findings": results.get(4, "")
+                        "description": description,
+                        "file_content": file_content,
+                        "data_types": ", ".join(data_types),
                     }
 
-                    formatted_prompt = prompts[i-1].format(**context)
+                    formatted_prompt = prompts[0].format(**context)
 
                     with details:
                         st.text("Prompt:")
                         st.code(formatted_prompt, language="markdown")
 
-                    with st.spinner(f"Processing {step_name}..."):
+                    with st.spinner("Analyzing threat intelligence..."):
                         if llm_provider == "OpenAI":
                             result = process_with_openai(api_key, formatted_prompt, model, max_tokens, temperature)
                         else:
                             result = process_with_anthropic(api_key, formatted_prompt, model, max_tokens, temperature)
 
                     if result is None:
-                        st.error(f"An error occurred while processing {step_name}.")
-                        break
+                        st.error("An error occurred while analyzing the threat intelligence.")
+                    else:
+                        # Store the result in session state
+                        st.session_state.result = result
 
-                    results[i] = result
+                        with details:
+                            st.text("Result:")
+                            st.code(st.session_state.result, language="markdown")
 
-                    with details:
-                        st.text("Result:")
-                        st.code(result, language="markdown")
-
-                    st.success(f"{step_name} complete!")
-                    st.session_state.step = i + 1
-                    update_progress()
-
-                if len(results) == 5:
-                    st.session_state.step = 6  # Indicate completion
-                    update_progress()
-                    st.success("Processing complete!")
-                    st.markdown(results[5])
-
-                    # Add a button to restart the process
-                    if st.button("Start Over"):
-                        st.session_state.step = 0
+                        st.success("Analysis complete!")
+                        st.session_state.step = 1
                         update_progress()
-                        st.experimental_rerun()
-                else:
-                    st.error("An error occurred while processing the threat intelligence.")
+
+                if st.session_state.step >= 1:
+                    with st.spinner("Parsing detections..."):
+                        # Parse the result to extract detections
+                        detections = []
+                        current_detection = {"name": "", "behavior": "", "log_evidence": "", "context": ""}
+                        capturing_threat_behavior = False
+                        capturing_log_evidence = False
+                        capturing_context = False
+
+                        for line in st.session_state.result.split('\n'):
+                            stripped_line = line.strip()
+                            if stripped_line.startswith(("Detection Name:", "1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.", "10.")):
+                                if current_detection["name"]:
+                                    detections.append(current_detection)
+                                    current_detection = {"name": "", "behavior": "", "log_evidence": "", "context": ""}
+                                name = stripped_line.split(":", 1)[-1].strip() if ":" in stripped_line else stripped_line.split(".", 1)[-1].strip()
+                                name = name.lstrip("0123456789. ")
+                                current_detection["name"] = name
+                            elif "Threat Behavior:" in stripped_line:
+                                capturing_threat_behavior = True
+                                capturing_log_evidence = False
+                                capturing_context = False
+                                current_detection["behavior"] = stripped_line.split("Threat Behavior:", 1)[-1].strip()
+                            elif "Log Evidence:" in stripped_line:
+                                capturing_threat_behavior = False
+                                capturing_log_evidence = True
+                                capturing_context = False
+                                current_detection["log_evidence"] = stripped_line.split("Log Evidence:", 1)[-1].strip()
+                            elif "Context:" in stripped_line:
+                                capturing_threat_behavior = False
+                                capturing_log_evidence = False
+                                capturing_context = True
+                                current_detection["context"] = stripped_line.split("Context:", 1)[-1].strip()
+                            elif capturing_threat_behavior:
+                                current_detection["behavior"] += " " + stripped_line
+                            elif capturing_log_evidence:
+                                current_detection["log_evidence"] += " " + stripped_line
+                            elif capturing_context:
+                                current_detection["context"] += " " + stripped_line
+
+                        if current_detection["name"]:
+                            detections.append(current_detection)
+
+                        if not detections:
+                            st.warning("No specific detections were identified. The entire analysis will be processed as a single detection.")
+                            detections = [{"name": "Entire Analysis", "behavior": st.session_state.result, "log_evidence": "", "context": ""}]
+
+                        st.session_state.detections = detections
+
+                    # Display the number of detections found
+                    st.info(f"Number of detections found: {len(detections)}")
+
+                    # Display the names of the detections and their threat behaviors
+                    if detections:
+                        st.write("Detections found:")
+                        for detection in detections:
+                            st.markdown(f"**Detection Name:** {detection['name']}")
+                            st.write(f"**Threat Behavior:** {detection['behavior']}")
+                            st.write(f"**Log Evidence:** {detection['log_evidence']}")
+                            st.write(f"**Context:** {detection['context']}")
+                            st.write("---")
+
+                    # Allow user to select a detection
+                    selected_detection_name = st.selectbox("Select a detection to process:", [d["name"] for d in st.session_state.detections])
+
+                    if st.button("Process Selected Detection"):
+                        selected_detection = next(d for d in st.session_state.detections if d["name"] == selected_detection_name)
+                        st.session_state.selected_detection = selected_detection
+                        st.session_state.step = 2
+                        update_progress()
+
+                if st.session_state.step >= 2:
+                    # Process the remaining steps for the selected detection
+                    selected_detection = st.session_state.selected_detection
+
+                    st.write("Processing the selected detection:")
+                    st.markdown(f"**Detection Name:** {selected_detection['name']}")
+                    st.write(f"**Threat Behavior:** {selected_detection['behavior']}")
+                    st.write(f"**Log Evidence:** {selected_detection['log_evidence']}")
+                    st.write(f"**Context:** {selected_detection['context']}")
+
+                    # Further processing steps...
+                    results = {}
+                    results[1] = st.session_state.result  # Store the first result
+
+                    for i in range(2, 6):
+                        if st.session_state.step > i:
+                            continue
+
+                        step_name = ['Create Detection Rule', 'Develop Investigation Guide', 'Quality Assurance Review', 'Final Summary'][i-2]
+                        
+                        st.subheader(f"Step {i}: {step_name}")
+                        details = st.expander("View Details", expanded=False)
+
+                        context = {
+                            "detection_language": detection_language,
+                            "current_detections": "\n".join(current_detections),
+                            "example_logs": "\n".join(example_logs),
+                            "detection_steps": detection_steps,
+                            "sop": sop,
+                            "previous_analysis": selected_detection,  # Use the selected detection
+                            "previous_detection_rule": results.get(2, ""),
+                            "previous_investigation_steps": results.get(3, ""),
+                            "previous_qa_findings": results.get(4, "")
+                        }
+
+                        formatted_prompt = prompts[i-1].format(**context)
+
+                        with details:
+                            st.text("Prompt:")
+                            st.code(formatted_prompt, language="markdown")
+
+                        with st.spinner(f"Processing {step_name}..."):
+                            if llm_provider == "OpenAI":
+                                result = process_with_openai(api_key, formatted_prompt, model, max_tokens, temperature)
+                            else:
+                                result = process_with_anthropic(api_key, formatted_prompt, model, max_tokens, temperature)
+
+                        if result is None:
+                            st.error(f"An error occurred while processing {step_name}.")
+                            break
+
+                        results[i] = result
+
+                        with details:
+                            st.text("Result:")
+                            st.code(result, language="markdown")
+
+                        st.success(f"{step_name} complete!")
+                        st.session_state.step = i + 1
+                        update_progress()
+
+                    if len(results) == 5:
+                        st.session_state.step = 6  # Indicate completion
+                        update_progress()
+                        st.success("Processing complete!")
+                        st.markdown(results[5])
+
+                        # Add a button to restart the process
+                        if st.button("Start Over"):
+                            st.session_state.step = 0
+                            update_progress()
+                            st.experimental_rerun()
+                    else:
+                        st.error("An error occurred while processing the threat intelligence.")
 
     with tab2:
         # Threat Research section
