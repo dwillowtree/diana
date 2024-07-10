@@ -287,7 +287,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             description = st.text_area(
                 "Enter threat intelligence description:",
                 height=200,
-                value="Detect a user attempting to exfiltrate an Amazon EC2 AMI Snapshot. This rule lets you monitor the ModifyImageAttribute CloudTrail API calls to detect when an Amazon EC2 AMI snapshot is made public or shared with an AWS account. This rule also inspects: @requestParameters.launchPermission.add.items.group array to determine if the string all is contained. This is the indicator which means the RDS snapshot is made public. @requestParameters.launchPermission.add.items.userId array to determine if the string * is contained. This is the indicator which means the RDS snapshot was shared with a new or unknown AWS account.",
+                placeholder="Detect a user attempting to exfiltrate an Amazon EC2 AMI Snapshot. This rule lets you monitor the ModifyImageAttribute CloudTrail API calls to detect when an Amazon EC2 AMI snapshot is made public or shared with an AWS account. This rule also inspects: @requestParameters.launchPermission.add.items.group array to determine if the string all is contained. This is the indicator which means the RDS snapshot is made public. @requestParameters.launchPermission.add.items.userId array to determine if the string * is contained. This is the indicator which means the RDS snapshot was shared with a new or unknown AWS account.",
                 help="Provide a detailed description of the threat intelligence you want to analyze."
             )
             uploaded_file = st.file_uploader(
@@ -317,7 +317,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                 st.text_area(
                     f"Example detection {i+1}",
                     height=100,
-                    value="SELECT sourceIPAddress, eventName, userAgent\nFROM cloudtrail_logs\nWHERE eventName = 'ConsoleLogin' AND errorMessage LIKE '%Failed authentication%'\nGROUP BY sourceIPAddress, eventName, userAgent\nHAVING COUNT(*) > 10",
+                    placeholder="SELECT sourceIPAddress, eventName, userAgent\nFROM cloudtrail_logs\nWHERE eventName = 'ConsoleLogin' AND errorMessage LIKE '%Failed authentication%'\nGROUP BY sourceIPAddress, eventName, userAgent\nHAVING COUNT(*) > 10",
                     help="Provide an example of an existing detection query in your environment."
                 ) for i in range(num_detections)
             ]
@@ -328,7 +328,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                 st.text_area(
                     f"Example log {i+1}",
                     height=100,
-                    value="paste examples of your actual logs here, you may have different field names or logging structure",
+                    placeholder="paste examples of your actual logs here, you may have different field names or logging structure",
                     help="Provide examples of actual log entries from your environment."
                 ) for i in range(num_logs)
             ]
@@ -338,7 +338,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             detection_steps = st.text_area(
                 "Enter detection writing steps:",
                 height=150,
-                value="1. Identify the key indicators or behaviors from the threat intel\n2. Determine the relevant log sources and fields\n3. Write the query using the specified detection language\n4. Include appropriate filtering to reduce false positives\n5. Add comments to explain the logic of the detection",
+                placeholder="1. Identify the key indicators or behaviors from the threat intel\n2. Determine the relevant log sources and fields\n3. Write the query using the specified detection language\n4. Include appropriate filtering to reduce false positives\n5. Add comments to explain the logic of the detection",
                 help="Outline the steps you typically follow when writing detection rules."
             )
 
@@ -346,7 +346,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             sop = st.text_area(
                 "Enter standard operating procedures or investigation steps for your current detections and alerts:",
                 height=150,
-                value="1. Validate the alert by reviewing the raw log data\n2. Check for any related alerts or suspicious activities from the same source\n3. Investigate the affected systems and user accounts\n4. Determine the potential impact and scope of the incident\n5. Escalate to the incident response team if a true positive is confirmed",
+                placeholder="1. Validate the alert by reviewing the raw log data\n2. Check for any related alerts or suspicious activities from the same source\n3. Investigate the affected systems and user accounts\n4. Determine the potential impact and scope of the incident\n5. Escalate to the incident response team if a true positive is confirmed",
                 help="Describe your standard operating procedures for triaging and investigating alerts."
             )
 
@@ -374,6 +374,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             # Return the final result
             return full_output
 
+        # Process Threat Intel button
         if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.step > 0:
             if not description and not uploaded_file and st.session_state.step == 0:
                 st.error("Please provide either a threat intel description or upload a file.")
@@ -478,16 +479,25 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                             st.write("---")
 
                     # Allow user to select a detection
-                    st.session_state.selected_detection = st.selectbox("Select a detection to process:", [d["name"] for d in st.session_state.detections])
+                    selected_detection_name = st.selectbox("Select a detection to process:", [d["name"] for d in st.session_state.detections])
 
                     if st.button("Process Selected Detection"):
+                        selected_detection = next(d for d in st.session_state.detections if d["name"] == selected_detection_name)
+                        st.session_state.selected_detection = selected_detection
                         st.session_state.step = 2
                         update_progress()
 
-                
-
                 if st.session_state.step >= 2:
                     # Process the remaining steps for the selected detection
+                    selected_detection = st.session_state.selected_detection
+
+                    st.write("Processing the selected detection:")
+                    st.markdown(f"**Detection Name:** {selected_detection['name']}")
+                    st.write(f"**Threat Behavior:** {selected_detection['behavior']}")
+                    st.write(f"**Log Evidence:** {selected_detection['log_evidence']}")
+                    st.write(f"**Context:** {selected_detection['context']}")
+
+                    # Further processing steps...
                     results = {}
                     results[1] = st.session_state.result  # Store the first result
 
@@ -506,7 +516,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                             "example_logs": "\n".join(example_logs),
                             "detection_steps": detection_steps,
                             "sop": sop,
-                            "previous_analysis": next((d for d in st.session_state.detections if st.session_state.selected_detection in d), st.session_state.result),
+                            "previous_analysis": selected_detection,  # Use the selected detection
                             "previous_detection_rule": results.get(2, ""),
                             "previous_investigation_steps": results.get(3, ""),
                             "previous_qa_findings": results.get(4, "")
