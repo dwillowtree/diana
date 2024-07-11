@@ -2,11 +2,16 @@
 
 Diana is a Streamlit application that processes cybersecurity threat intelligence and generates high-quality detection logic, investigation steps, and response procedures using Large Language Models (LLMs).
 
-## UI
+![DIANA Screenshot](assets/diana_main_1.gif)
+*Select an LLM provider, security log source and detection language*
 
-![DIANA Screenshot](assets/diana-screenshot.png)
+![DIANA Screenshot](assets/diana_main_2.gif)
+*DIANA will convert the threat description into a detection, investigation steps and perform a QA check*
 
-*DIANA's user interface showing threat intelligence analysis and detection generation*
+## Threat Research Agents
+
+![DIANA Workflow](assets/research_crew.gif)
+*Spin up a crew of autonomous agents to perform threat detection research*
 
 ## Installation
 
