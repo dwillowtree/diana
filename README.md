@@ -4,9 +4,13 @@ Diana is a Streamlit application that processes cybersecurity threat intelligenc
 
 ## UI
 
-![DIANA Screenshot](assets/diana-screenshot.png)
-
+![DIANA Screenshot](assets/diana_main.gif)
 *DIANA's user interface showing threat intelligence analysis and detection generation*
+
+## AI Agent Crew
+
+![DIANA Workflow](assets/research_crew.gif)
+*Spin up a crew of autonomous agents to perform threat detection research*
 
 ## Installation
 
