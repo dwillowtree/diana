@@ -40,14 +40,15 @@ To run the Streamlit app locally:
 ```
 streamlit run app.py
 ```
-Then, open your web browser and go to `http://localhost:8501`.
+Then, open your web browser and go to `http://localhost:8501`.  
+PRO TIP: Use Claude 3 Haiku (fast, cheap and smart)
 
 ## Configuration
 
 1. Obtain API keys:
    - For OpenAI: Visit https://platform.openai.com/account/api-keys
    - For Anthropic: Visit https://www.anthropic.com or follow their documentation
-   - For EXA AI: Visit https://exa.ai to obtain your API key. Exa searches the web based on the meaning
+   - For EXA AI (this is only needed for the threat research agents): Visit https://exa.ai to obtain your API key. Exa searches the web based on the meaning
    of your search, as opposed to keyword search with Google. https://exa.ai/faq
 
 2. Add your API keys to the `.env` file:
