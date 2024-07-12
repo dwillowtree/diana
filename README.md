@@ -40,7 +40,7 @@ To run the Streamlit app locally:
 ```
 streamlit run app.py
 ```
-Then, open your web browser and go to `http://localhost:8501`.
+Then, open your web browser and go to `http://localhost:8501`.  
 PRO TIP: Use Claude 3 Haiku (fast, cheap and smart)
 
 ## Configuration
