@@ -175,6 +175,9 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             key="llm_provider",
             help="Choose the AI model provider for processing."
         )
+        
+        # Add Pro Tip before the model type selection
+        st.sidebar.markdown("**PRO TIP:** Use Claude 3 Haiku (it's smart, fast, and cheap)")
 
         # API Key input based on the provider
         if llm_provider == "OpenAI":
