@@ -179,12 +179,12 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
 
         # Add Pro Tip before the model type selection
         st.sidebar.markdown("**PRO TIP:** Use Claude 3 Haiku (it's smart, fast, and cheap)")
-        
+
         # Model selection based on provider
         if llm_provider == "OpenAI":
             model = st.selectbox(
                 "Model Type",
-                ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"],
+                ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"],
                 key="openai_model",
                 help="Select the OpenAI model to use for processing."
             )
@@ -519,7 +519,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                             "example_logs": "\n".join(example_logs),
                             "detection_steps": detection_steps,
                             "sop": sop,
-                            "previous_analysis": selected_detection,  # Use the selected detection
+                            "previous_analysis": selected_detection,
                             "previous_detection_rule": results.get(2, ""),
                             "previous_investigation_steps": results.get(3, ""),
                             "previous_qa_findings": results.get(4, "")

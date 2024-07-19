@@ -61,8 +61,7 @@ def process_threat_intel(description, file_content, llm_provider, model, data_ty
             "example_logs": "\n".join(example_logs),
             "detection_steps": detection_steps,
             "sop": sop,
-            "previous_analysis": result if selected_detection == "Entire Analysis" else next((d for d in detections if selected_detection in d), st.session_state.result),
-            "previous_detection_rule": results.get(2, ""),
+            "previous_analysis": results.get(1, "") if "Entire Analysis" in st.session_state.selected_detection else next((d for d in st.session_state.detections if st.session_state.selected_detection in d['name']), ""),            "previous_detection_rule": results.get(2, ""),
             "previous_investigation_steps": results.get(3, ""),
             "previous_qa_findings": results.get(4, "")
         }
