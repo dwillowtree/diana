@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 import os
 import fitz
 from threat_research import perform_threat_research
+from firecrawl_integration import scrape_url
+
 
 # Load environment variables
 load_dotenv()
@@ -254,9 +256,10 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             st.markdown("[![Splunk](https://img.shields.io/badge/Splunk-000000?style=for-the-badge&logo=splunk&logoColor=white)](https://github.com/splunk/security_content)")
             st.markdown("[![Datadog](https://img.shields.io/badge/Datadog-632CA6?style=for-the-badge&logo=datadog&logoColor=white)](https://docs.datadoghq.com/security/default_rules/)")
 
-    # Main content area
+    
     st.title("🛡️ D.I.A.N.A.")
     st.subheader("Detection and Intelligence Analysis for New Alerts")
+
 
     # Create tabs for main workflow and threat research
     tab1, tab2 = st.tabs(["Detection Engineering", "Threat Research Crew [Experimental]"])
@@ -287,9 +290,33 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("Threat Intelligence Input")
+            url = st.text_input("Enter URL:")
+            
+            # Initialize session state for scraped content if it doesn't exist
+            if 'scraped_content' not in st.session_state:
+                st.session_state.scraped_content = ""
+
+            # Scrape URL button
+            if st.button("🔍 Scrape URL", type="primary"):  
+                if url:
+                    try:
+                        with st.spinner("Scraping URL..."):
+                            st.session_state.scraped_content = scrape_url(url)
+                        st.success("URL scraped successfully!")
+                    except Exception as e:
+                        st.error(f"Error scraping URL: {e}")
+                        st.session_state.scraped_content = ""
+                else:
+                    st.warning("Please enter a URL to scrape.")
+
+            # Display scraped content if available
+            if st.session_state.scraped_content:
+                with st.expander("View Scraped Content", expanded=False):
+                    st.markdown(st.session_state.scraped_content)
+            
             description = st.text_area(
                 "Enter threat intelligence description:",
-                height=200,
+                height=100,
                 placeholder="Detect a user attempting to exfiltrate an Amazon EC2 AMI Snapshot. This rule lets you monitor the ModifyImageAttribute CloudTrail API calls to detect when an Amazon EC2 AMI snapshot is made public or shared with an AWS account. This rule also inspects: @requestParameters.launchPermission.add.items.group array to determine if the string all is contained. This is the indicator which means the RDS snapshot is made public. @requestParameters.launchPermission.add.items.userId array to determine if the string * is contained. This is the indicator which means the RDS snapshot was shared with a new or unknown AWS account.",
                 help="Provide a detailed description of the threat intelligence you want to analyze."
             )
@@ -311,11 +338,27 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                 else:
                     # Process other text files
                     file_content = uploaded_file.getvalue().decode("utf-8")
-  
+
+                    # Collapsible sections for additional inputs
+            with st.expander("Detection Writing Steps", expanded=False):
+                detection_steps = st.text_area(
+                    "Enter detection writing steps:",
+                    height=150,
+                    placeholder="1. Identify the key indicators or behaviors from the threat intel\n2. Determine the relevant log sources and fields\n3. Write the query using the specified detection language\n4. Include appropriate filtering to reduce false positives\n5. Add comments to explain the logic of the detection",
+                    help="Outline the steps you typically follow when writing detection rules."
+                )
+
+            with st.expander("Alert Triage Steps", expanded=False):
+                sop = st.text_area(
+                    "Enter standard operating procedures or investigation steps for your current detections and alerts:",
+                    height=150,
+                    placeholder="1. Validate the alert by reviewing the raw log data\n2. Check for any related alerts or suspicious activities from the same source\n3. Investigate the affected systems and user accounts\n4. Determine the potential impact and scope of the incident\n5. Escalate to the incident response team if a true positive is confirmed",
+                    help="Describe your standard operating procedures for triaging and investigating alerts."
+                )    
 
         with col2:
             st.subheader("Example Detections")
-            num_detections = st.number_input("Number of example detections", min_value=1, value=3, step=1)
+            num_detections = st.number_input("Number of example detections", min_value=1, value=2, step=1)
             current_detections = [
                 st.text_area(
                     f"Example detection {i+1}",
@@ -326,7 +369,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             ]
             
             st.subheader("Example Logs")
-            num_logs = st.number_input("Number of example logs", min_value=1, value=3, step=1)
+            num_logs = st.number_input("Number of example logs", min_value=1, value=2, step=1)
             example_logs = [
                 st.text_area(
                     f"Example log {i+1}",
@@ -335,23 +378,6 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                     help="Provide examples of actual log entries from your environment."
                 ) for i in range(num_logs)
             ]
-
-        # Collapsible sections for additional inputs
-        with st.expander("Detection Writing Steps", expanded=False):
-            detection_steps = st.text_area(
-                "Enter detection writing steps:",
-                height=150,
-                placeholder="1. Identify the key indicators or behaviors from the threat intel\n2. Determine the relevant log sources and fields\n3. Write the query using the specified detection language\n4. Include appropriate filtering to reduce false positives\n5. Add comments to explain the logic of the detection",
-                help="Outline the steps you typically follow when writing detection rules."
-            )
-
-        with st.expander("Alert Triage Steps", expanded=False):
-            sop = st.text_area(
-                "Enter standard operating procedures or investigation steps for your current detections and alerts:",
-                height=150,
-                placeholder="1. Validate the alert by reviewing the raw log data\n2. Check for any related alerts or suspicious activities from the same source\n3. Investigate the affected systems and user accounts\n4. Determine the potential impact and scope of the incident\n5. Escalate to the incident response team if a true positive is confirmed",
-                help="Describe your standard operating procedures for triaging and investigating alerts."
-            )
 
         def run_threat_research(query, crewai_model):
             # Create a placeholder in the Streamlit UI
@@ -379,7 +405,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
 
         # Process Threat Intel button
         if st.button("🚀 Process Threat Intel", type="primary") or st.session_state.step > 0:
-            if not description and not uploaded_file and st.session_state.step == 0:
+            if not description and not uploaded_file and not st.session_state.scraped_content and st.session_state.step == 0:
                 st.error("Please provide either a threat intel description or upload a file.")
             else:
                 if st.session_state.step == 0:
@@ -390,6 +416,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                     context = {
                         "description": description,
                         "file_content": file_content,
+                        "scraped_content": st.session_state.scraped_content,
                         "data_types": ", ".join(data_types),
                     }
 
@@ -484,7 +511,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                     # Allow user to select a detection
                     selected_detection_name = st.selectbox("Select a detection to process:", [d["name"] for d in st.session_state.detections])
 
-                    if st.button("Process Selected Detection"):
+                    if st.button("Process Selected Detection", type="primary"):
                         selected_detection = next(d for d in st.session_state.detections if d["name"] == selected_detection_name)
                         st.session_state.selected_detection = selected_detection
                         st.session_state.step = 2
@@ -598,7 +625,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             help="Specify a topic for in-depth threat research to supplement your analysis."
         )
 
-        if st.button("🔍 Perform Threat Research", key="research_button"):
+        if st.button("🔍 Perform Threat Research", type="primary", key="research_button"):
             if research_query:
                 with st.spinner("Performing threat research... This may take a few minutes."):
                     research_result = run_threat_research(research_query, crewai_model)

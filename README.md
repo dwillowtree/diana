@@ -50,6 +50,7 @@ PRO TIP: Use Claude 3 Haiku (fast, cheap and smart)
    - For Anthropic: Visit https://www.anthropic.com or follow their documentation
    - For EXA AI (this is only needed for the threat research agents): Visit https://exa.ai to obtain your API key. Exa searches the web based on the meaning
    of your search, as opposed to keyword search with Google. https://exa.ai/faq
+   - For Firecrawl: Visit https://www.firecrawl.dev/ you can scrape 500 pages for free a month
 
 2. Add your API keys to the `.env` file:
    ```
