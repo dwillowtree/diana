@@ -57,6 +57,7 @@ PRO TIP: Use Claude 3 Haiku (fast, cheap and smart)
    OPENAI_API_KEY=your_openai_api_key_here
    ANTHROPIC_API_KEY=your_anthropic_api_key_here
    EXA_API_KEY=your_exa_ai_api_key_here
+   FIRECRAWL_API_KEY=your_firecrawl_api_key_here
    ```
 
 ## Contributing
