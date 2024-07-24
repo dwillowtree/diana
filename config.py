@@ -7,7 +7,8 @@ prompts = [
     Analyze the following threat intelligence:
 
 Description: {description}
-Blog/Report (if available): {file_content}
+Blog/Report (if provided): {file_content}
+Scraped Website Content (if provided): {scraped_content}
 
 Focus only on threat intelligence that can be used to write detections for {data_types}. Extract potential detections that have clear log evidence in the provided intelligence.
 For each potential detection:
