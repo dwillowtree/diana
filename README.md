@@ -13,6 +13,35 @@ Diana is a Streamlit application that processes cybersecurity threat intelligenc
 ![DIANA Workflow](assets/research_crew.gif)
 *Spin up a crew of autonomous agents to perform threat detection research*
 
+## Features
+
+- Automates the creation of detections from threat intelligence
+- Supports models accessed via OpenAI API, Anthropic API, and other major LLM providers
+- Converts threat intelligence from natural language descriptions, documents, or website URLs into high-quality detection logic, investigation steps, and response procedures
+- Allows selection of LLM provider, security log source, and detection language to customize outputs
+- Performs quality assurance checks on generated detection logic to ensure syntax accuracy
+- Spin up a crew of AI agents for enhanced threat research (Crew AI, EXA AI, Firecrawl)
+- Requires diverse, high-quality example detections and example log sources for optimal results
+- Follows user-defined detection writing steps and workflows just like a new teammate would
+- Generates comprehensive alert triage and investigation steps using Palantir's ADS framework
+- Runs locally on the user's machine as a Streamlit app
+
+## Roadmap
+
+[ ] Multi-modal support (upload slides from your favorite cons or presentations, diagrams, images of incidents, TTPs)
+[ ] Amazon Bedrock integration (data security and privacy)
+[ ] Docker container (host Diana yourself in your environment)
+[ ] Personalized prompts (when you're happy with your results, save your custom prompts so you don't have to keep copy/pasting example detections and logs)
+[ ] Auto prompt optimization (paste your examples and instructions and your prompt will be optimized for you to get the best possible results)
+[ ] Metrics & Monitoring (view how much tokens you use and your cost $)
+[ ] RLHF (reinforcement learning from human feedback, thumbs up and down your answers to improve the quality of your results)
+[ ] Asynchronous/batch processing (convert 10 TTPs all at once in parallel)
+[ ] Customizable alerting & notification (send results to Slack, Google Chat or Jira ticket)
+[ ] Select your threat intel resource of choice (i.e. your favorite blog or open-source detection content repo)
+[ ] Enhanced User Documentation and Tutorials: comprehensive user guides, video tutorials, and example use cases to help users get started and make the most out of Diana.
+[ ] Front End migration (TBD)
+[ ] Search & Tuning Agent (automatically search your SIEM/XDR/security data lake with your converted detection logic and correct for benign positives)
+
 ## Installation
 
 1. Clone the repository:
