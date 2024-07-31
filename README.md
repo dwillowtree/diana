@@ -9,6 +9,18 @@ Note: Providing high-quality example detections, logs, and your detection writin
 
 ### If you liked the tool, head over to --> [seiber.ai](https://www.seiber.ai) to stay updated on what we're doing!
 
+## Table of Contents
+
+- [How To Use](#how-to-use)
+- [Threat Research Agents](#threat-research-agents)
+- [Features](#features)
+- [Roadmap](#roadmap)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## How To Use
 
 1. **Select LLM Provider and Model:**
