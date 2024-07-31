@@ -52,6 +52,14 @@ Note: Providing high-quality example detections, logs, and your detection writin
 ![DIANA Workflow](assets/research_crew.gif)
 *Spin up a crew of autonomous agents to perform threat detection research*
 
+This feature spins up a crew of autonomous AI agents that perform threat detection research on your topic of choice. They are maxed out at 5 iterations each, so no need to worry about them going rogue and taking over the world.
+These agents use Exa, which employs semantic search (embeddings) to search the web, providing more contextually relevant results than traditional keyword-based search engines like Google.
+        
+**Examples of research topics:**
+- Threat hunting in Okta logs
+- Most common TTPs used by attackers in AWS
+- Latest detection strategies for ransomware in Windows environments
+
 ## Features
 
 - Automates the creation of detections from threat intelligence
@@ -101,7 +109,7 @@ Note: Providing high-quality example detections, logs, and your detection writin
    ```
 4. Set up your environment variables:
    - Copy the `.env.example` file to `.env`
-   - Edit the `.env` file and add your OpenAI, Anthropic, and EXA AI API keys
+   - Edit the `.env` file and add your OpenAI, Anthropic, EXA AI and Firecrawl API keys
 
 ## Usage
 
