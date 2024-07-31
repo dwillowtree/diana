@@ -1,6 +1,24 @@
 # DIANA: Detection and Intelligence Analysis for New Alerts
 
-Diana is a Streamlit application that processes cybersecurity threat intelligence and generates high-quality detection logic, investigation steps, and response procedures using Large Language Models (LLMs).
+DIANA automates the creation of detections from threat intelligence using Large Language Models (LLMs).
+
+Note: Providing high-quality example detections, logs, and your detection writing process is critical for optimal results.
+
+[![Join our Waitlist](https://img.shields.io/badge/Join%20Our%20Waitlist-Seiber.ai-brightgreen)](https://www.seiber.ai)
+
+# How To Use
+
+1. Select LLM provider and model
+2. Choose the security data/log type(s) you only want to focus on 
+3. Select detection language
+4. Enter a website URL, write a description of threat TTP(s) or upload a document
+5. Important: Provide 3-7 diverse, high-quality example detections for the chosen log source
+6. Important: Provide 3-7 example log sources
+7. Recommended: Outline your typical detection writing steps (this helps DIANA follow your workflow)
+8. Describe alert triage/investigation steps
+9. Click 'Process Threat Intel'
+
+Remember: The quality and diversity of your inputs directly impact DIANA's output. Take time to provide comprehensive examples and follow your standard workflow for the best results.
 
 ![DIANA Screenshot](assets/diana_main_1.gif)
 *Select an LLM provider, security log source and detection language*
