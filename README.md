@@ -9,6 +9,8 @@ Note: Providing high-quality example detections, logs, and your detection writin
 
 ### If you liked the tool, head over to --> [seiber.ai](https://www.seiber.ai) to stay updated on what we're doing!
 
+**If you have any feedback or ideas to improve the tool, shoot an email to dwilliams@seiber.ai.**
+
 ## Table of Contents
 
 - [How To Use](#how-to-use)
@@ -84,7 +86,7 @@ These agents use Exa, which employs semantic search (embeddings) to search the w
 - [ ] RLHF (reinforcement learning from human feedback, thumbs up and down your answers to improve the quality of your results)
 - [ ] Asynchronous/batch processing (convert 10 TTPs all at once in parallel)
 - [ ] Customizable alerting & notification (send results to Slack, Google Chat or Jira ticket)
-- [ ] Select your threat intel resource of choice (i.e. your favorite blog website or open-source detection content repo)
+- [ ] Subscribe to a threat intel resource of choice (i.e. your favorite blog website or open-source detection content repo)
 - [ ] Enhanced User Documentation and Tutorials: comprehensive user guides, video tutorials, and example use cases to help users get started and make the most out of Diana.
 - [ ] Front End migration (TBD)
 - [ ] Search & Tuning Agent (automatically search your SIEM/XDR/security data lake with your converted detection logic and correct for benign positives)
