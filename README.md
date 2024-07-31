@@ -9,8 +9,6 @@ Note: Providing high-quality example detections, logs, and your detection writin
 
 ### If you liked the tool, head over to --> [seiber.ai](https://www.seiber.ai) to stay updated on what we're doing!
 
-**If you have any feedback on the tool, or just want to talk AI or security shoot an email to dwilliams@seiber.ai.**
-
 ## Table of Contents
 
 - [How To Use](#how-to-use)
@@ -149,6 +147,8 @@ PRO TIP: Use Claude 3 Haiku (fast, cheap and smart)
 6. Create a new Pull Request
 
 Please ensure that your code follows the existing style and includes appropriate tests and documentation.
+
+**If you have any feedback on the tool, or just want to talk AI or security shoot an email to dwilliams@seiber.ai.**
 
 ## License
 
