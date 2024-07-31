@@ -9,7 +9,7 @@ Note: Providing high-quality example detections, logs, and your detection writin
 
 ### If you liked the tool, head over to --> [seiber.ai](https://www.seiber.ai) to stay updated on what we're doing!
 
-**If you have any feedback or ideas to improve the tool, shoot an email to dwilliams@seiber.ai.**
+**If you have any feedback on the tool, or just want to talk AI or security shoot an email to dwilliams@seiber.ai.**
 
 ## Table of Contents
 
