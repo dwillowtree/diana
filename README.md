@@ -4,24 +4,33 @@ DIANA automates the creation of detections from threat intelligence using Large 
 
 Note: Providing high-quality example detections, logs, and your detection writing process is critical for optimal results.
 
-### If you liked the tool, head over to --> [seiber.ai](https://www.seiber.ai) to stay updated on what we're doing!
-
 ![DIANA Screenshot](assets/diana_main_1.gif)
 *Select an LLM provider, security log source and detection language*
 
-# How To Use
+### If you liked the tool, head over to --> [seiber.ai](https://www.seiber.ai) to stay updated on what we're doing!
 
-1. Select LLM provider and model
-2. Choose the security data/log type(s) you only want to focus on 
-3. Select detection language
-4. Enter a website URL, write a description of threat TTP(s) or upload a document
-5. Important: Provide 3-7 diverse, high-quality example detections for the chosen log source
-6. Important: Provide 3-7 example log sources
-7. Recommended: Outline your typical detection writing steps (this helps DIANA follow your workflow)
-8. Describe alert triage/investigation steps
-9. Click 'Process Threat Intel'
+## How To Use
 
-Remember: The quality and diversity of your inputs directly impact DIANA's output. Take time to provide comprehensive examples and follow your standard workflow for the best results.
+1. **Select LLM Provider and Model:**
+   - Choose the LLM provider and model you want to use.
+2. **Choose Security Data/Log Type(s):**
+   - Focus on specific security data or log types.
+3. **Select Detection Language:**
+   - Choose your preferred detection language.
+4. **Input Threat Information:**
+   - Enter a website URL, write a description of threat TTP(s), or upload a document.
+5. **Provide Example Detections:**
+   - *Important:* Provide 3-7 diverse, high-quality example detections for the chosen log source.
+6. **Provide Example Log Sources:**
+   - *Important:* Provide 3-7 example log sources.
+7. **Outline Detection Writing Steps:**
+   - *Recommended:* Outline your typical detection writing steps to help DIANA follow your workflow.
+8. **Describe Alert Triage/Investigation Steps:**
+   - Describe steps for alert triage and investigation.
+9. **Process Threat Intel:**
+   - Click 'Process Threat Intel' to generate detection logic.
+
+*Remember: The quality and diversity of your inputs directly impact DIANA's output. Take time to provide comprehensive examples and follow your standard workflow for the best results.*
 
 ![DIANA Screenshot](assets/diana_main_2.gif)
 *DIANA will convert the threat description into a detection, investigation steps and perform a QA check*
