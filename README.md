@@ -1,9 +1,48 @@
 # DIANA: Detection and Intelligence Analysis for New Alerts
 
-Diana is a Streamlit application that processes cybersecurity threat intelligence and generates high-quality detection logic, investigation steps, and response procedures using Large Language Models (LLMs).
+DIANA automates the creation of detections from threat intelligence using Large Language Models (LLMs).
+
+Note: Providing high-quality example detections, logs, and your detection writing process is critical for optimal results.
 
 ![DIANA Screenshot](assets/diana_main_1.gif)
 *Select an LLM provider, security log source and detection language*
+
+### If you liked the tool, head over to --> [seiber.ai](https://www.seiber.ai) to stay updated on what we're doing!
+
+## Table of Contents
+
+- [How To Use](#how-to-use)
+- [Threat Research Agents](#threat-research-agents)
+- [Features](#features)
+- [Roadmap](#roadmap)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Contributing](#contributing)
+- [License](#license)
+
+## How To Use
+
+1. **Select LLM Provider and Model:**
+   - Choose the LLM provider and model you want to use.
+2. **Choose Security Data/Log Type(s):**
+   - Focus on specific security data or log types.
+3. **Select Detection Language:**
+   - Choose your preferred detection language.
+4. **Input Threat Information:**
+   - Enter a website URL, write a description of threat TTP(s), or upload a document.
+5. **Provide Example Detections:**
+   - *Important:* Provide 3-7 diverse, high-quality example detections for the chosen log source.
+6. **Provide Example Log Sources:**
+   - *Important:* Provide 3-7 example log sources.
+7. **Outline Detection Writing Steps:**
+   - *Recommended:* Outline your typical detection writing steps to help DIANA follow your workflow.
+8. **Describe Alert Triage/Investigation Steps:**
+   - Describe steps for alert triage and investigation.
+9. **Process Threat Intel:**
+   - Click 'Process Threat Intel' to generate detection logic.
+
+*Remember: The quality and diversity of your inputs directly impact DIANA's output. Take time to provide comprehensive examples and follow your standard workflow for the best results.*
 
 ![DIANA Screenshot](assets/diana_main_2.gif)
 *DIANA will convert the threat description into a detection, investigation steps and perform a QA check*
@@ -12,6 +51,14 @@ Diana is a Streamlit application that processes cybersecurity threat intelligenc
 
 ![DIANA Workflow](assets/research_crew.gif)
 *Spin up a crew of autonomous agents to perform threat detection research*
+
+This feature spins up a crew of autonomous AI agents that perform threat detection research on your topic of choice. They are maxed out at 5 iterations each, so no need to worry about them going rogue and taking over the world.
+These agents use Exa, which employs semantic search (embeddings) to search the web, providing more contextually relevant results than traditional keyword-based search engines like Google.
+        
+**Examples of research topics:**
+- Threat hunting in Okta logs
+- Most common TTPs used by attackers in AWS
+- Latest detection strategies for ransomware in Windows environments
 
 ## Features
 
@@ -37,7 +84,7 @@ Diana is a Streamlit application that processes cybersecurity threat intelligenc
 - [ ] RLHF (reinforcement learning from human feedback, thumbs up and down your answers to improve the quality of your results)
 - [ ] Asynchronous/batch processing (convert 10 TTPs all at once in parallel)
 - [ ] Customizable alerting & notification (send results to Slack, Google Chat or Jira ticket)
-- [ ] Select your threat intel resource of choice (i.e. your favorite blog website or open-source detection content repo)
+- [ ] Subscribe to a threat intel resource of choice (i.e. your favorite blog website or open-source detection content repo)
 - [ ] Enhanced User Documentation and Tutorials: comprehensive user guides, video tutorials, and example use cases to help users get started and make the most out of Diana.
 - [ ] Front End migration (TBD)
 - [ ] Search & Tuning Agent (automatically search your SIEM/XDR/security data lake with your converted detection logic and correct for benign positives)
@@ -62,7 +109,7 @@ Diana is a Streamlit application that processes cybersecurity threat intelligenc
    ```
 4. Set up your environment variables:
    - Copy the `.env.example` file to `.env`
-   - Edit the `.env` file and add your OpenAI, Anthropic, and EXA AI API keys
+   - Edit the `.env` file and add your OpenAI, Anthropic, EXA AI and Firecrawl API keys
 
 ## Usage
 
@@ -100,6 +147,8 @@ PRO TIP: Use Claude 3 Haiku (fast, cheap and smart)
 6. Create a new Pull Request
 
 Please ensure that your code follows the existing style and includes appropriate tests and documentation.
+
+**If you have any feedback on the tool, or just want to talk AI or security shoot an email to dwilliams@seiber.ai.**
 
 ## License
 
