@@ -4,11 +4,7 @@ DIANA automates the creation of detections from threat intelligence using Large 
 
 Note: Providing high-quality example detections, logs, and your detection writing process is critical for optimal results.
 
----
-
-## 🚀 Exciting News!
-
-### Join the Waitlist for Our New Company [Seiber.ai](https://www.seiber.ai)
+### If you liked the tool, head over to --> [seiber.ai](https://www.seiber.ai) to stay updated on what we're doing!
 
 # How To Use
 
