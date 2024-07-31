@@ -6,6 +6,9 @@ Note: Providing high-quality example detections, logs, and your detection writin
 
 ### If you liked the tool, head over to --> [seiber.ai](https://www.seiber.ai) to stay updated on what we're doing!
 
+![DIANA Screenshot](assets/diana_main_1.gif)
+*Select an LLM provider, security log source and detection language*
+
 # How To Use
 
 1. Select LLM provider and model
@@ -19,9 +22,6 @@ Note: Providing high-quality example detections, logs, and your detection writin
 9. Click 'Process Threat Intel'
 
 Remember: The quality and diversity of your inputs directly impact DIANA's output. Take time to provide comprehensive examples and follow your standard workflow for the best results.
-
-![DIANA Screenshot](assets/diana_main_1.gif)
-*Select an LLM provider, security log source and detection language*
 
 ![DIANA Screenshot](assets/diana_main_2.gif)
 *DIANA will convert the threat description into a detection, investigation steps and perform a QA check*
