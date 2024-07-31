@@ -4,7 +4,11 @@ DIANA automates the creation of detections from threat intelligence using Large 
 
 Note: Providing high-quality example detections, logs, and your detection writing process is critical for optimal results.
 
-[![Join our Waitlist](https://img.shields.io/badge/Join%20Our%20Waitlist-Seiber.ai-brightgreen)](https://www.seiber.ai)
+---
+
+## 🚀 Exciting News!
+
+### Join the Waitlist for Our New Company [Seiber.ai](https://www.seiber.ai)
 
 # How To Use
 
