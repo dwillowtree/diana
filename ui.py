@@ -7,11 +7,10 @@ import fitz
 from threat_research import perform_threat_research
 from firecrawl_integration import scrape_url
 
-
 # Load environment variables
 load_dotenv()
 
-def render_ui(prompts, process_with_openai, process_with_anthropic):
+def render_ui(prompts, process_with_llm):
     # Streamlit UI
     st.set_page_config(page_title="D.I.A.N.A.", page_icon="🛡️", layout="wide")
 
@@ -173,7 +172,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
         # LLM Provider selection with tooltip
         llm_provider = st.selectbox(
             "LLM Provider",
-            ["OpenAI", "Anthropic"],
+            ["OpenAI", "Anthropic", "Amazon Bedrock", "Groq"],
             index=1,
             key="llm_provider",
             help="Choose the AI model provider for processing."
@@ -190,7 +189,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                 key="openai_model",
                 help="Select the OpenAI model to use for processing."
             )
-        else:
+        elif llm_provider == "Anthropic":
             model = st.selectbox(
                 "Model Type",
                 ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
@@ -198,6 +197,29 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                 key="anthropic_model",
                 help="Select the Anthropic model to use for processing."
             )
+        elif llm_provider == "Amazon Bedrock":
+            model = st.selectbox(
+                "Model Type",
+                [
+                    "bedrock/anthropic.claude-3-sonnet-20240229-v1:0",
+                    "bedrock/anthropic.claude-3-haiku-20240307-v1:0",
+                    "bedrock/meta.llama3-8b-instruct-v1:0",
+                    "bedrock/meta.llama3-70b-instruct-v1:0"
+                ],
+                key="bedrock_model",
+                help="Select the Amazon Bedrock model to use for processing."
+            )
+        elif llm_provider == "Groq":
+            model = st.selectbox(
+                "Model Type",
+        [
+            "groq/llama-3.1-70b-versatile",
+            "groq/llama-3.1-8b-instant",
+            "groq/llama3-8b-8192",
+        ],
+        key="groq_model",
+        help="Select the Groq model to use for processing."
+    )
         
         # Data types multiselect with search functionality
         data_types = st.multiselect(
@@ -214,9 +236,9 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
         detection_language = st.selectbox(
             "Detection Language",
             [
-                "AWS Athena", "StreamAlert", "Splunk SPL", "Elastic Query DSL",
+                "AWS Athena", "StreamAlert", "Splunk SPL", "Falcon LogScale", "Elastic Query DSL",
                 "Kusto Query Language (KQL)",
-                "Sigma Rules","Panther Detection-as-Code (Python)"
+                "Sigma Rules","Panther (Python)"
             ],
             key="detection_language_select",
             help="Choose the query language for your detection rules."
@@ -243,26 +265,13 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
             key="max_tokens_slider",
             help="Maximum number of tokens in the generated response. Higher values allow for longer outputs but may increase processing time."
         )
-        
-        # Open Source Detection Content (collapsed by default)
-        with st.expander("Open Source Detection Content", expanded=False):
-            st.markdown("[![Elastic](https://img.shields.io/badge/Elastic-005571?style=for-the-badge&logo=elastic&logoColor=white)](https://github.com/elastic/detection-rules)")
-            st.markdown("[![Chronicle](https://img.shields.io/badge/Chronicle-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://github.com/chronicle/detection-rules)")
-            st.markdown("[![Sigma](https://img.shields.io/badge/Sigma-008080?style=for-the-badge&logo=sigma&logoColor=white)](https://github.com/SigmaHQ/sigma)")
-            st.markdown("[![Hacking the Cloud](https://img.shields.io/badge/Hacking_the_Cloud-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://hackingthe.cloud/)")
-            st.markdown("[![Wiz Threats](https://img.shields.io/badge/Wiz_Threats-00ADEF?style=for-the-badge&logo=wiz&logoColor=white)](https://threats.wiz.io/)")
-            st.markdown("[![Anvilogic Armory](https://img.shields.io/badge/Anvilogic_Armory-6F2DA8?style=for-the-badge&logo=github&logoColor=white)](https://github.com/anvilogic-forge/armory)")
-            st.markdown("[![Panther](https://img.shields.io/badge/Panther-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/panther-labs/panther-analysis/tree/release/rules)")
-            st.markdown("[![Splunk](https://img.shields.io/badge/Splunk-000000?style=for-the-badge&logo=splunk&logoColor=white)](https://github.com/splunk/security_content)")
-            st.markdown("[![Datadog](https://img.shields.io/badge/Datadog-632CA6?style=for-the-badge&logo=datadog&logoColor=white)](https://docs.datadoghq.com/security/default_rules/)")
-
     
     st.title("🛡️ D.I.A.N.A.")
     st.subheader("Detection and Intelligence Analysis for New Alerts")
 
 
     # Create tabs for main workflow and threat research
-    tab1, tab2 = st.tabs(["Detection Engineering", "Threat Research Crew [Experimental]"])
+    tab1, tab2, tab3 = st.tabs(["Detection Engineering", "Threat Research Crew", "Bulk Detection Processing [Coming Soon]"])
 
     # Progress bar for multi-step process
     if 'step' not in st.session_state:
@@ -427,10 +436,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                         st.code(formatted_prompt, language="markdown")
 
                     with st.spinner("Analyzing threat intelligence..."):
-                        if llm_provider == "OpenAI":
-                            result = process_with_openai(formatted_prompt, model, max_tokens, temperature)
-                        else:
-                            result = process_with_anthropic(formatted_prompt, model, max_tokens, temperature)
+                        result = process_with_llm(formatted_prompt, model, max_tokens, temperature)
 
                     if result is None:
                         st.error("An error occurred while analyzing the threat intelligence.")
@@ -559,10 +565,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                             st.code(formatted_prompt, language="markdown")
 
                         with st.spinner(f"Processing {step_name}..."):
-                            if llm_provider == "OpenAI":
-                                result = process_with_openai(formatted_prompt, model, max_tokens, temperature)
-                            else:
-                                result = process_with_anthropic(formatted_prompt, model, max_tokens, temperature)
+                            result = process_with_llm(formatted_prompt, model, max_tokens, temperature)
 
                         if result is None:
                             st.error(f"An error occurred while processing {step_name}.")
@@ -613,7 +616,7 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
         # Add the CrewAI model selection here
         crewai_model = st.selectbox(
             "CrewAI Model",
-            ["gpt-3.5-turbo", "gpt-4-turbo", "gpt-4o"],
+            ["gpt-4o-mini", "gpt-4-turbo", "gpt-4o"],
             index=0,  # Set default to gpt-3.5-turbo
             key="crewai_model",
             help="Select the model for CrewAI to use"
@@ -635,5 +638,21 @@ def render_ui(prompts, process_with_openai, process_with_anthropic):
                 
             else:
                 st.warning("Please enter a research topic before performing threat research.")
+    with tab3:
+        st.subheader("Open Source Detection Content")
+        
+        st.markdown("[![Elastic](https://img.shields.io/badge/Elastic-005571?style=for-the-badge&logo=elastic&logoColor=white)](https://github.com/elastic/detection-rules)")
+        st.markdown("[![Chronicle](https://img.shields.io/badge/Chronicle-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://github.com/chronicle/detection-rules)")
+        st.markdown("[![Sigma](https://img.shields.io/badge/Sigma-008080?style=for-the-badge&logo=sigma&logoColor=white)](https://github.com/SigmaHQ/sigma)")
+        st.markdown("[![Hacking the Cloud](https://img.shields.io/badge/Hacking_the_Cloud-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://hackingthe.cloud/)")
+        st.markdown("[![Wiz Threats](https://img.shields.io/badge/Wiz_Threats-00ADEF?style=for-the-badge&logo=wiz&logoColor=white)](https://threats.wiz.io/)")
+        st.markdown("[![Anvilogic Armory](https://img.shields.io/badge/Anvilogic_Armory-6F2DA8?style=for-the-badge&logo=github&logoColor=white)](https://github.com/anvilogic-forge/armory)")
+        st.markdown("[![Panther](https://img.shields.io/badge/Panther-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/panther-labs/panther-analysis/tree/release/rules)")
+        st.markdown("[![Splunk](https://img.shields.io/badge/Splunk-000000?style=for-the-badge&logo=splunk&logoColor=white)](https://github.com/splunk/security_content)")
+        st.markdown("[![Datadog](https://img.shields.io/badge/Datadog-632CA6?style=for-the-badge&logo=datadog&logoColor=white)](https://docs.datadoghq.com/security/default_rules/)")
+        st.markdown("[![Falco Security](https://img.shields.io/badge/Falco_Security-6A737D?style=for-the-badge&logo=github&logoColor=white)](https://github.com/falcosecurity/rules)")
+        st.markdown("[![ExaBeam Content Library](https://img.shields.io/badge/ExaBeam-008080?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ExabeamLabs/Content-Doc)")
+        st.markdown("[![Sekoia Detection Rules](https://img.shields.io/badge/Sekoia_Detection-0000FF?style=for-the-badge&logo=github&logoColor=white)](https://docs.sekoia.io/xdr/features/detect/built_in_detection_rules/)")
+        st.markdown("[![Sublime](https://img.shields.io/badge/Sublime-FF6347?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sublime-security/sublime-rules/)")
 
     st.markdown("---")

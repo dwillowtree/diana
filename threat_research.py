@@ -70,7 +70,7 @@ def perform_threat_research(query):
         - Detailed log source evidence for each TTP
         - Actionable insights and strategies for detection and mitigation""",
         agent=analyst,
-        expected_output="A detailed analysis summarizing the threat intelligence, highlighting the best candidates for detection, with emphasis on actionable insights and log source evidence for detection and mitigation strategies."
+        expected_output="A comprehensive report that lists the final list of TTPs selected for detection, along with detailed log source evidence and actionable insights.",
     )
 
     # Create the crew
