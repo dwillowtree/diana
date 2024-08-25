@@ -8,3 +8,5 @@ exa-py
 langchain_openai
 PyMuPDF
 firecrawl
+litellm
+boto3

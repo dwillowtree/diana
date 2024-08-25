@@ -75,12 +75,12 @@ These agents use Exa, which employs semantic search (embeddings) to search the w
 
 ## Roadmap
 
-- [ ] Multi-modal support (upload slides from your favorite cons or presentations, diagrams, images of incidents, TTPs)
-- [ ] Amazon Bedrock integration (data security and privacy)
+- [X] Multi-modal support (upload slides from your favorite cons or presentations, diagrams, images of incidents, TTPs)
+- [X] Amazon Bedrock integration (data security and privacy)
 - [ ] Docker container (host Diana yourself in your environment)
 - [ ] Personalized prompts (when you're happy with your results, save your custom prompts so you don't have to keep copy/pasting example detections and logs)
 - [ ] Auto prompt optimization (paste your examples and instructions and your prompt will be optimized for you to get the best possible results)
-- [ ] Metrics & Monitoring (view how much tokens you use and your cost $)
+- [X] Metrics & Monitoring (view how much tokens you use and your cost $)
 - [ ] RLHF (reinforcement learning from human feedback, thumbs up and down your answers to improve the quality of your results)
 - [ ] Asynchronous/batch processing (convert 10 TTPs all at once in parallel)
 - [ ] Customizable alerting & notification (send results to Slack, Google Chat or Jira ticket)
