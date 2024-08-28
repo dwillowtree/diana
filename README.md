@@ -88,6 +88,7 @@ These agents use Exa, which employs semantic search (embeddings) to search the w
 - [ ] Enhanced User Documentation and Tutorials: comprehensive user guides, video tutorials, and example use cases to help users get started and make the most out of Diana.
 - [ ] Front End migration (TBD)
 - [ ] Search & Tuning Agent (automatically search your SIEM/XDR/security data lake with your converted detection logic and correct for benign positives)
+- [ ] Add RouteLLM to route prompts to ideal models to save cost, performance
 
 
 ## Installation
@@ -133,8 +134,12 @@ PRO TIP: Use Claude 3 Haiku (fast, cheap and smart)
    ```
    OPENAI_API_KEY=your_openai_api_key_here
    ANTHROPIC_API_KEY=your_anthropic_api_key_here
-   EXA_API_KEY=your_exa_ai_api_key_here
+   EXA_API_KEY=your_exa_api_key_here
    FIRECRAWL_API_KEY=your_firecrawl_api_key_here
+   GROQ_API_KEY=your_groq_api_key_here
+   AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
+   AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
+   AWS_REGION_NAME=your_aws_region_name_here
    ```
 
 ## Contributing
