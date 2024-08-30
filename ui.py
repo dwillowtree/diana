@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 import fitz
 from threat_research import perform_threat_research
+from agents.splunk_agent import perform_splunk_query_tuning
 from firecrawl_integration import scrape_url
 
 # Load environment variables
@@ -271,7 +272,7 @@ def render_ui(prompts, process_with_llm):
 
 
     # Create tabs for main workflow and threat research
-    tab1, tab2, tab3 = st.tabs(["Detection Engineering", "Threat Research Crew", "Bulk Detection Processing [Coming Soon]"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Detection Engineering", "Threat Research Crew", "Bulk Detection Processing [Coming Soon]", "Splunk Agent"])
 
     # Progress bar for multi-step process
     if 'step' not in st.session_state:
@@ -673,6 +674,48 @@ def render_ui(prompts, process_with_llm):
         st.markdown("[![Workload Security Evaluator](https://img.shields.io/badge/Workload_Security_Evaluator-632CA6?style=for-the-badge&logo=datadog&logoColor=white)](https://github.com/DataDog/workload-security-evaluator)")
         st.markdown("[![DeRF](https://img.shields.io/badge/DeRF-6A737D?style=for-the-badge&logo=github&logoColor=white)](https://github.com/vectra-ai-research/derf)")
         st.markdown("[![AWS Threat Composer](https://img.shields.io/badge/AWS_Threat_Composer-FF9900?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://github.com/awslabs/threat-composer)")
+    
+    with tab4:
+        # Splunk Query Tuning section
+        st.subheader("Splunk Query Tuning")
 
+        st.markdown("""
+        This feature utilizes a CrewAI agent to optimize your Splunk detection queries. The goal is to reduce false positives while maintaining the effectiveness of the query.
+        
+        **How it works:**
+        - Enter a detection query that you want to optimize.
+        - Select a CrewAI model to fine-tune the query.
+        - The agent will analyze the query and suggest modifications to improve accuracy.
+        
+        **Examples of queries:**
+        - Detection for failed login attempts with specific user patterns.
+        - Queries targeting unusual activity in AWS CloudTrail logs.
+        """)
+
+        # Add the CrewAI model selection here
+        splunk_model = st.selectbox(
+            "CrewAI Model for Splunk Tuning",
+            ["gpt-4o-mini", "gpt-4-turbo", "gpt-4o"],
+            index=0,  # Set default to gpt-4o-mini
+            key="splunk_model",
+            help="Select the model for CrewAI to use for Splunk query tuning"
+        )
+
+        splunk_query = st.text_area(
+            "Enter your Splunk detection query:",
+            placeholder="E.g., 'index=security sourcetype=aws:cloudtrail eventName=ConsoleLogin ...'",
+            help="Paste your Splunk query here for tuning and optimization."
+        )
+
+        if st.button("🔍 Tune Splunk Query", type="primary", key="splunk_button"):
+            if splunk_query:
+                with st.spinner("Tuning Splunk query... This may take a few minutes."):
+                    tuning_result = perform_splunk_query_tuning("Splunk Query Tuning", splunk_query)
+                
+                st.subheader("Splunk Query Tuning Results")
+                st.markdown(tuning_result)
+                
+            else:
+                st.warning("Please enter a Splunk detection query before performing tuning.")
 
     st.markdown("---")
