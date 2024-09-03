@@ -238,7 +238,7 @@ def render_ui(prompts, process_with_llm):
             [
                 "AWS Athena", "StreamAlert", "Splunk SPL", "Falcon LogScale", "Elastic Query DSL",
                 "Kusto Query Language (KQL)",
-                "Sigma Rules","Panther (Python)"
+                "Sigma Rules","Panther (Python)", "Hunters (Snowflake SQL)"
             ],
             key="detection_language_select",
             help="Choose the query language for your detection rules."
