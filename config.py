@@ -127,7 +127,7 @@ For each aspect, provide:
 
 Present your QA findings as a structured report with clear recommendations for each aspect. Include code snippets or pseudo-code where applicable to illustrate suggested improvements.
 
-Conclude with an overall assessment of the detection rule's quality and readiness for production deployment, including the total score out of 100 and a brief explanation of the score."""
+Conclude with an overall assessment of the detection rule's quality and readiness for production deployment, including the total score out of 100 and a brief explanation of the score.""",
 
     # Prompt 5: Final summary
     """As a senior threat analyst, compile a comprehensive detection package using the following components:
@@ -152,17 +152,17 @@ Create a markdown-formatted output with the following structure:
 {detection_language}
 {previous_detection_rule}
 
-Log Sources
+## Log Sources
 [List of specific log sources or data types required for this detection]
 
-Investigation Steps
+##Investigation Steps
 [Numbered list of investigation steps from {previous_investigation_steps}]
 
 Performance Considerations
 [Brief notes on expected performance, including estimated false positive rate]
 
-QA Notes
-[Summary of key QA findings and any outstanding items to address]
+## Quality Assessment
+[Give the overall score out of 100 and the summary from {previous_qa_findings}]
 
 Ensure the final output is well-structured, comprehensive, and ready for review and implementation by the security operations team."""
 
